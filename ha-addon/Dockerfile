@@ -5,7 +5,7 @@ FROM $BUILD_FROM
 RUN apk add --no-cache \
     python3 \
     py3-pip \
-    openssh-keygen \
+    openssh \
     curl \
     bash
 
@@ -13,7 +13,7 @@ WORKDIR /app
 
 # Python závislosti
 COPY app/requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Aplikace
 COPY app/ .

@@ -243,3 +243,48 @@ sudo bash build.sh --skip-download
 sudo apt-get install --reinstall qemu-user-static
 sudo systemctl restart systemd-binfmt
 ```
+
+---
+
+## Průběžná údržba kiosků
+
+Jednou za čas stačí SSH přihlášení — **žádné reflashování, žádný build stroj**.
+
+### Bezpečnostní aktualizace OS (jednou za 1-3 měsíce)
+
+```bash
+ssh pi@kiosk-obyvak.local
+
+sudo apt update && sudo apt upgrade -y && sudo reboot
+```
+
+Aktualizuje: kernel, Chromium, systemd, a všechny ostatní systémové balíčky.
+RPi se restartuje a kiosk pokračuje normálně.
+
+### Aktualizace modulů (pokud změníš kód v repo)
+
+Pokud jsi upravil soubory modulu v repozitáři (start_chroot_script nebo files/):
+
+```bash
+ssh pi@kiosk-obyvak.local
+
+# Stáhni novou verzi repozitáře
+cd /opt/ha-kiosk-os && sudo git pull
+
+# Přehraj konkrétní modul
+sudo bash src/modules/02-vnc/start_chroot_script
+
+# Nebo jen překopíruj konfigurační soubory (bez reinstalace)
+sudo cp -r src/modules/02-vnc/files/. /
+sudo systemctl restart vnc   # pokud je potřeba restart služby
+```
+
+### Co kdy dělat
+
+| Situace | Řešení |
+|---------|--------|
+| Bezpečnostní záplata OS | `apt upgrade` přes SSH |
+| Změna konfigurace modulu | `git pull` + překopírovat `files/` |
+| Změna install logiky modulu | `git pull` + spustit `start_chroot_script` |
+| Nový modul, velká změna | Reprovisioning (`provision.sh`) |
+| Nová verze RPi OS | Reflash (jednou ročně) |

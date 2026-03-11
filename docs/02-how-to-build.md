@@ -48,10 +48,18 @@ Přes [RPi Imager](https://www.raspberrypi.com/software/):
 - **WiFi kiosk:** WiFi vyplnit v Imageru — provision.sh potřebuje internet ihned při startu
   (`KIOSK_NETWORK=wifi` v kiosk.conf pak WiFi zachová i po dokončení firstbootu)
 
-### Krok 3 — Zkopíruj kiosk.conf na boot partition
+### Krok 3 — Zkopíruj soubory na boot partition
 
 Po flashování je boot partition viditelná ve Windows Průzkumníkovi jako USB disk.
-Zkopíruj `kiosk.conf` vedle ostatních souborů (cmdline.txt, config.txt...).
+Zkopíruj tyto soubory vedle ostatních souborů (cmdline.txt, config.txt...):
+
+| Soubor | Zdroj | Popis |
+|--------|-------|-------|
+| `kiosk.conf` | stažen z HA Addonu (Krok 1) | Konfigurace kiosku |
+| `kiosk-setup.sh` | z repozitáře (root) | Průvodce instalací — nabídne spuštění |
+
+`kiosk-setup.sh` stáhneš z: `https://github.com/romankysely/ha-kiosk-os/blob/main/kiosk-setup.sh`
+(klikni **Raw** → ulož jako `kiosk-setup.sh`)
 
 ### Krok 3b — Vlož SD kartu do RPi a zapni
 
@@ -62,24 +70,21 @@ Zkopíruj `kiosk.conf` vedle ostatních souborů (cmdline.txt, config.txt...).
 
 Počkej ~30-60 sekund než RPi nabootuje a připojí se do sítě.
 
-### Krok 4 — SSH do RPi a spusť provisioning
+### Krok 4 — SSH do RPi a spusť průvodce instalací
 
 ```bash
 ssh pi@kiosk-XX.local
 
-# Varianta A — přímý curl (nejjednodušší)
-curl -fsSL https://raw.githubusercontent.com/romankysely/ha-kiosk-os/dev/provision.sh | sudo bash
-
-# Varianta B — pokud jsi zkopíroval provision.sh na boot partition
-sudo bash /boot/firmware/provision.sh
+bash /boot/firmware/kiosk-setup.sh
 ```
 
-**Sleduj průběh přímo v SSH okně** — provision.sh vypisuje:
+Průvodce zobrazí načtenou konfiguraci a zeptá se `[Y/n]`. Po potvrzení
+sleduj průběh přímo v SSH okně:
 - Číslované sekce `[1/7]` až `[7/7]` s časem od startu
 - Průběh každého modulu `[1/6]`, `[2/6]` ...
 - Závěrečný report se souhrnem
 
-Chceš sledovat v druhém SSH okně:
+Pro sledování v druhém SSH okně:
 ```bash
 tail -f /var/log/kiosk-provision.log
 ```

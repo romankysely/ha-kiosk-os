@@ -37,7 +37,7 @@ git checkout dev
 
 ### Moduly (src/modules/)
 
-Všech 7 modulů je plně implementováno — `start_chroot_script` + `files/`:
+Všech 6 modulů je plně implementováno — `start_chroot_script` + `files/`:
 
 | Modul | Co dělá |
 |-------|---------|
@@ -47,7 +47,6 @@ Všech 7 modulů je plně implementováno — `start_chroot_script` + `files/`:
 | `04-audio` | PipeWire + pipewire-pulse + wireplumber + snapclient |
 | `05-ha-bootstrap` | firstboot.sh (10 kroků), inject-ha-token.py (Chromium extension), phone-home |
 | `06-monitoring` | Glances přes pip3, web UI port 61208 |
-| `07-keyboard` | onboard virtuální klávesnice — VOLITELNÝ (jen pro dotykové kiosky) |
 
 ### provision.sh (primární přístup)
 Spouští se na stock RPi OS Lite přes SSH:

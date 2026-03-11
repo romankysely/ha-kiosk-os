@@ -32,10 +32,9 @@ Záloha: `build.sh` na Ubuntu 22.04 VM (Synology VMM) — x86 host + QEMU ARM64 
    C) OFFLINE IMAGE ← PRO 10+ KIOSKŮ BEZ INTERNETU
       Jako B, ale image se distribuje offline
 
-2. MODULY (src/modules/01-07)
+2. MODULY (src/modules/01-06)
    Každý modul = start_chroot_script + files/ (struktura odpovídá rootfs /)
    Fungují jak při provisioning (nativně na RPi) tak při image buildu (QEMU chroot)
-   Modul 07-keyboard je VOLITELNÝ (jen pro dotykové kiosky)
    Výběr modulů: KIOSK_MODULES v kiosk.conf
 
 3. HA ADDON (ha-addon/)
@@ -65,7 +64,6 @@ Každý kiosk se přihlašuje do HA pod dedikovaným uživatelským účtem.
 | `src/modules/04-audio` | ✅ hotovo | PipeWire + snapclient, placeholder __SNAPCAST_HOST__ |
 | `src/modules/05-ha-bootstrap` | ✅ hotovo | firstboot.sh, inject-ha-token.py, phone-home |
 | `src/modules/06-monitoring` | ✅ hotovo | Glances web UI port 61208 |
-| `src/modules/07-keyboard` | ✅ hotovo | onboard virtuální klávesnice — **VOLITELNÝ** (jen pro dotykové kiosky) |
 | `build.sh` | ✅ hotovo | loop device, chroot, resize +4GB, SHA256 verify |
 | `ha-addon/` | ✅ hotovo | Flask UI, /api/register, kiosk správa |
 | `config/kiosk.conf.template` | ✅ hotovo | šablona bez citlivých dat |
@@ -122,6 +120,7 @@ ha-kiosk-os/
 │   ├── 04-audio/                ← PipeWire + Snapcast client
 │   ├── 05-ha-bootstrap/         ← firstboot.sh, HA token injection, phone-home
 │   └── 06-monitoring/           ← Glances monitoring web UI
+
 ├── ha-addon/                    ← Home Assistant Addon "Kiosk Builder"
 │   ├── config.yaml
 │   ├── Dockerfile

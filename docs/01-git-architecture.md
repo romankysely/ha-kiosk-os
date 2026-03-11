@@ -41,8 +41,7 @@ ha-kiosk-os/
 │       ├── 03-claude-code/
 │       ├── 04-audio/
 │       ├── 05-ha-bootstrap/
-│       ├── 06-monitoring/
-│       └── 07-keyboard/          # Volitelný (jen pro dotykové kiosky)
+│       └── 06-monitoring/
 │
 ├── config/
 │   ├── build.conf             # Verze RPi OS, parametry buildu

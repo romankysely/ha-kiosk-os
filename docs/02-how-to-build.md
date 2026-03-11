@@ -115,11 +115,8 @@ provision.sh
 V `kiosk.conf` nastav `KIOSK_MODULES`:
 
 ```bash
-# Standardní (bez dotykové klávesnice):
+# Standardní:
 KIOSK_MODULES="01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring"
-
-# S dotykovou klávesnicí:
-KIOSK_MODULES="01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring 07-keyboard"
 
 # Minimální (jen kiosk + bootstrap):
 KIOSK_MODULES="01-kiosk-base 05-ha-bootstrap"

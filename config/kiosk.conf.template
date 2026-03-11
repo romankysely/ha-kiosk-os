@@ -40,6 +40,5 @@ KIOSK_AUDIO_OUTPUT="hdmi0"
 KIOSK_SNAPCAST_HOST=""
 
 # Moduly k instalaci při provisioning (mezerou oddělené)
-# Vynech 07-keyboard pokud kiosk nemá dotykový displej
 # Vynech 04-audio pokud nepouživáš Snapcast
 KIOSK_MODULES="01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring"

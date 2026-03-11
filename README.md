@@ -66,11 +66,10 @@ Viz [docs/02-how-to-build.md](docs/02-how-to-build.md)
 ## Dokumentace
 
 - [docs/00-overview.md](docs/00-overview.md) — architektura projektu
-- [docs/01-git-architecture.md](docs/01-git-architecture.md) — git struktura a workflow
-- [docs/02-how-to-build.md](docs/02-how-to-build.md) — jak sestavit image
-- [docs/03-adding-module.md](docs/03-adding-module.md) — jak přidat nový modul
+- [docs/01-ha-addon.md](docs/01-ha-addon.md) — HA Addon Kiosk Builder (prerekvizita)
+- [docs/02-how-to-build.md](docs/02-how-to-build.md) — jak sestavit image a nasadit kiosk
+- [docs/03-git-architecture.md](docs/03-git-architecture.md) — git struktura a workflow
 - [docs/04-upgrade-upstream.md](docs/04-upgrade-upstream.md) — jak upgradovat RPi OS
-- [docs/05-ha-addon.md](docs/05-ha-addon.md) — HA Addon Kiosk Builder
 - [docs/modules/](docs/modules/) — dokumentace jednotlivých modulů
 
 ## Bezpečnost a soukromí
@@ -79,7 +78,7 @@ Viz [docs/02-how-to-build.md](docs/02-how-to-build.md)
 Vše specifické pro konkrétní instalaci (WiFi, HA URL, tokeny, IP adresy)
 se generuje za běhu přes HA Addon a nikdy se nedostane do gitu.
 
-Viz [docs/06-security.md](docs/06-security.md)
+Viz [docs/05-security.md](docs/05-security.md)
 
 ## Struktura repozitáře
 

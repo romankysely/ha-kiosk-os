@@ -128,7 +128,9 @@ ha-kiosk-os/
 │   └── app/                     ← Flask aplikace (main.py, templates/, static/)
 └── docs/
     ├── 00-overview.md
+    ├── 01-ha-addon.md
     ├── 02-how-to-build.md
+    ├── 03-git-architecture.md
     ├── ha-kiosk-builder.md      ← průvodce přípravou Synology VMM build stroje
     └── modules/                 ← dokumentace každého modulu
 ```

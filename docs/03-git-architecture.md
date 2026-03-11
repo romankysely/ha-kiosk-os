@@ -57,12 +57,11 @@ ha-kiosk-os/
 │
 └── docs/
     ├── 00-overview.md
-    ├── 01-git-architecture.md    ← tento soubor
+    ├── 01-ha-addon.md
     ├── 02-how-to-build.md
-    ├── 03-adding-module.md
+    ├── 03-git-architecture.md    ← tento soubor
     ├── 04-upgrade-upstream.md
-    ├── 05-ha-addon.md
-    ├── 06-security.md
+    ├── 05-security.md
     ├── ha-kiosk-builder.md
     └── modules/
         ├── kiosk-base.md
@@ -206,6 +205,6 @@ Příklady:
 ```
 feat: modul 04-audio — přidán Snapcast klient
 fix: 01-kiosk-base — oprava HW video dekódování na Pi5
-docs: 02-how-to-build — doplněn postup pro Windows
+docs: 02-how-to-build — doplněn postup pro Linux
 chore: upgrade RPi OS na 2025-03-15
 ```

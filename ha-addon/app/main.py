@@ -75,7 +75,6 @@ def kiosk_is_online(kiosk: dict, timeout_minutes: int = 5) -> bool:
 
 def generate_kiosk_conf(data: dict) -> str:
     """Vygeneruje obsah kiosk.conf ze slovníku dat."""
-    ssh_pub = get_ssh_public_key()
     lines = [
         "################################################################################",
         f"# kiosk.conf — vygenerováno HA KioskOS Kiosk Builderem",
@@ -85,7 +84,11 @@ def generate_kiosk_conf(data: dict) -> str:
         "",
         f'KIOSK_HOSTNAME="{data.get("hostname", "kiosk")}"',
         "",
+        "# HA přihlašovací údaje",
+        "# Uživatel musí existovat v HA (Settings → People → Add Person)",
+        "# Token vytvoř v profilu uživatele v HA (Long-Lived Access Token)",
         f'KIOSK_HA_URL="{data.get("ha_url", "")}"',
+        f'KIOSK_HA_USERNAME="{data.get("ha_username", "")}"',
         f'KIOSK_HA_TOKEN="{data.get("ha_token", "")}"',
         f'KIOSK_ADDON_URL="{data.get("addon_url", "")}"',
         "",
@@ -103,6 +106,9 @@ def generate_kiosk_conf(data: dict) -> str:
         "",
         f'KIOSK_AUDIO_OUTPUT="{data.get("audio_output", "hdmi0")}"',
         f'KIOSK_SNAPCAST_HOST="{data.get("snapcast_host", "")}"',
+        "",
+        "# Moduly k instalaci (pouze pro provisioning přístup)",
+        f'KIOSK_MODULES="{data.get("modules", "01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring")}"',
     ]
     return "\n".join(lines) + "\n"
 
@@ -131,6 +137,7 @@ def add_kiosk():
         data = {
             "hostname": request.form.get("hostname", "").strip().lower(),
             "ha_url": request.form.get("ha_url", "").strip().rstrip("/"),
+            "ha_username": request.form.get("ha_username", "").strip(),
             "ha_token": request.form.get("ha_token", "").strip(),
             "addon_url": request.form.get("addon_url", "").strip().rstrip("/"),
             "dashboard_url": request.form.get("dashboard_url", "").strip(),
@@ -144,6 +151,8 @@ def add_kiosk():
             "rotation": request.form.get("rotation", "0"),
             "audio_output": request.form.get("audio_output", "hdmi0"),
             "snapcast_host": request.form.get("snapcast_host", "").strip(),
+            "modules": request.form.get("modules",
+                "01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring").strip(),
         }
 
         if not data["hostname"]:
@@ -170,12 +179,17 @@ def add_kiosk():
         return redirect(url_for("download_conf", hostname=data["hostname"]))
 
     # GET — prázdný formulář s výchozími hodnotami
+    # Pokus o získání HA URL z prostředí (ingress)
+    ha_url = os.environ.get("KIOSK_HA_URL", "http://192.168.1.100:8123")
+    ha_ip = ha_url.split("//")[-1].split(":")[0] if "://" in ha_url else "192.168.1.100"
+
     default_data = {
         "hostname": "",
-        "ha_url": "http://192.168.1.100:8123",
+        "ha_url": ha_url,
+        "ha_username": "",
         "ha_token": "",
-        "addon_url": "http://192.168.1.100:8099",
-        "dashboard_url": "http://192.168.1.100:8123/lovelace/0",
+        "addon_url": f"http://{ha_ip}:8099",
+        "dashboard_url": f"{ha_url}/lovelace/0",
         "network": "dhcp",
         "wifi_ssid": "",
         "wifi_password": "",
@@ -186,6 +200,7 @@ def add_kiosk():
         "rotation": "0",
         "audio_output": "hdmi0",
         "snapcast_host": "",
+        "modules": "01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring",
     }
     return render_template("add.html", data=default_data)
 
@@ -267,6 +282,8 @@ def api_register():
     hostname = payload.get("hostname", "unknown")
     mac = payload.get("mac", "")
     client_ip = payload.get("ip") or request.remote_addr
+    ha_username = payload.get("ha_username", "")
+    dashboard_url = payload.get("dashboard_url", "")
 
     # Aktualizovat status kiosku v databázi
     kiosks = load_kiosks()
@@ -285,6 +302,8 @@ def api_register():
         "last_ip": client_ip,
         "mac": mac,
         "registered": True,
+        **({"ha_username": ha_username} if ha_username else {}),
+        **({"dashboard_url": dashboard_url} if dashboard_url else {}),
     })
     save_kiosks(kiosks)
 

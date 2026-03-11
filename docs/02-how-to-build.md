@@ -1,28 +1,52 @@
 # Jak nasadit ha-kiosk-os
 
-Existují dva přístupy. **Provisioning je doporučený** pro domácí použití.
+Existují tři přístupy — zvol podle počtu kiosků a dostupného vybavení.
+
+| Přístup | Kiosků | Build stroj | Čas nasazení |
+|---------|--------|-------------|--------------|
+| A — Provisioning | 1-2 | Ne | ~30 min |
+| B — Base image + firstboot | 3+ | Ano (Ubuntu VM) | ~5 min / kiosk |
+| C — Offline image | 10+ | Ano (Ubuntu VM) | ~5 min / kiosk |
 
 ---
 
-## Přístup 1 — Provisioning (doporučeno) ⭐
+## Přístup A — Provisioning ⭐ (doporučeno pro začátek)
 
 Flash stock RPi OS Lite → SSH → jeden příkaz. Žádný build stroj, žádný QEMU.
-Moduly se instalují nativně na ARM64 hardware → rychlejší, jednodušší.
+Moduly se instalují nativně na ARM64 hardware — jednoduché a spolehlivé.
 
-### Postup
+### Krok 0 — Vytvoř HA uživatelský účet pro kiosk
 
-**1. Flash stock RPi OS Lite 64-bit** přes [RPi Imager](https://www.raspberrypi.com/software/)
-- Device: Raspberry Pi 5
-- OS: Raspberry Pi OS Lite (64-bit)
+**Každý kiosk se přihlašuje do HA pod svým uživatelským účtem.**
+Účet určuje: přístupová práva, výchozí zobrazený dashboard.
+
+1. HA → **Settings → People → Add Person**
+2. Vyplň jméno (např. `Kiosk Obývák`) a přihlaš. jméno (např. `kiosk-obyvak`)
+3. Pokud chceš aby kiosk zobrazoval specifický dashboard: nastav ho v HA pro tohoto uživatele
+4. Přihlaš se do HA jako nový uživatel → klikni na jeho profil (vpravo nahoře) →
+   scroll dolů → **Long-Lived Access Tokens → Create Token**
+5. Zkopíruj token — vložíš ho do HA Addonu
+
+### Krok 1 — Vygeneruj kiosk.conf v HA Addonu
+
+- Otevři **Kiosk Builder Addon** v HA → klikni **Přidat kiosk**
+- Vyplň: hostname, HA URL, HA username, token (z kroku 0), URL dashboardu
+- Klikni **Uložit** → stáhni `kiosk.conf`
+
+### Krok 2 — Flash stock RPi OS Lite 64-bit
+
+Přes [RPi Imager](https://www.raspberrypi.com/software/):
+- Device: **Raspberry Pi 5**
+- OS: **Raspberry Pi OS Lite (64-bit)**
 - Edit Settings: `username=pi`, `SSH enabled`, `hostname=kiosk-XX`
-- **WiFi NEVYPLŇUJ** — řeší se přes kiosk.conf
+- **WiFi NEVYPLŇUJ** — řeší se přes kiosk.conf (nebo nech prázdné pro LAN)
 
-**2. Zkopíruj `kiosk.conf`** na boot partition (vygeneruj v HA Addonu)
+### Krok 3 — Zkopíruj kiosk.conf na boot partition
 
 Po flashování je boot partition viditelná ve Windows Průzkumníkovi jako USB disk.
 Zkopíruj `kiosk.conf` vedle ostatních souborů (cmdline.txt, config.txt...).
 
-**3. SSH do RPi** a spusť provisioning:
+### Krok 4 — SSH do RPi a spusť provisioning
 
 ```bash
 ssh pi@kiosk-XX.local
@@ -34,13 +58,18 @@ curl -fsSL https://raw.githubusercontent.com/romankysely/ha-kiosk-os/dev/provisi
 sudo bash /boot/firmware/provision.sh
 ```
 
-**4. Sleduj průběh** (volitelně v druhém SSH terminálu):
+**Sleduj průběh přímo v SSH okně** — provision.sh vypisuje:
+- Číslované sekce `[1/7]` až `[7/7]` s časem od startu
+- Průběh každého modulu `[1/6]`, `[2/6]` ...
+- Závěrečný report se souhrnem
 
+Chceš sledovat v druhém SSH okně:
 ```bash
 tail -f /var/log/kiosk-provision.log
 ```
 
-**5.** Po dokončení RPi automaticky **rebootuje** → kiosk je hotový (~20-40 min).
+Po dokončení RPi automaticky **rebootuje** → kiosk je hotový (~20-40 min).
+Výsledný report: `/var/log/kiosk-provision-report.txt`
 
 ### Co se stane při provisioning
 
@@ -92,12 +121,71 @@ sudo systemctl restart networking
 
 ---
 
-## Přístup 2 — Image build (záloha)
+## Přístup B — Base image + firstboot ⭐⭐ (3+ kiosků)
 
-Vytvoří vlastní `.img` soubor. Vhodné pro:
-- Offline nasazení (bez internetu na místě)
-- 10+ kiosků (flash z jednoho obrazu)
-- Garantované verze balíčků
+Jednou postav "HA KioskOS Base" image se všemi moduly předinstalovanými.
+Každý další kiosk pak nasadíš za ~5 min — jen flash + kiosk.conf + boot.
+
+### Kdy použít
+
+- Máš 3+ kiosků
+- Chceš konzistentní prostředí (všechny kiosky identické)
+- Chceš rychlé nasazení (objednáš nový Pi → za hodinu hotový kiosk)
+- Máš Ubuntu VM (Synology VMM nebo jiný Linux)
+
+### Příprava — Build base image (jednou)
+
+```bash
+# Na Ubuntu VM (build stroj):
+git clone https://github.com/romankysely/ha-kiosk-os.git
+cd ha-kiosk-os && git checkout dev
+
+# Instalace závislostí (jednou):
+sudo bash setup-build-machine.sh
+
+# Build base image (30-60 min):
+sudo bash build.sh
+# Výsledek: src/image/ha-kiosk-os-YYYY-MM-DD.img
+```
+
+Tento image je **bez per-device konfigurace** (žádný token, žádný hostname).
+Při prvním startu automaticky spustí `firstboot.sh` pokud najde `kiosk.conf`.
+
+### Nasazení každého kiosku (opakovaně)
+
+**1. Flash base image** přes [RPi Imager](https://www.raspberrypi.com/software/):
+- Choose OS → **Use custom** → vyber `ha-kiosk-os-YYYY-MM-DD.img`
+- Edit Settings: `username=pi`, `SSH enabled`
+
+**2. Zkopíruj `kiosk.conf`** na boot partition (jako u Přístupu A)
+
+**3. Vlož SD do RPi a zapni** — za ~5 min je kiosk hotový automaticky:
+```
+Boot → kiosk-firstboot.service detekuje kiosk.conf
+     → firstboot.sh: hostname, síť, phone-home, HA token, reboot
+     → Chromium → HA dashboard ✓
+```
+Log: `/var/log/kiosk-firstboot.log`
+
+### Kdy obnovit base image
+
+- Při vydání bezpečnostní aktualizace RPi OS
+- Při změně modulů (přidání/odebrání)
+- Přibližně každé 3-6 měsíců pro čerstvé balíčky
+
+```bash
+# Obnova image na build stroji:
+git pull origin dev     # aktualizuj moduly
+sudo bash build.sh      # nový build (~30-60 min)
+# Distribuuj nový .img na všechna RPi (při dalším flashování)
+```
+
+---
+
+## Přístup C — Offline image (záloha, 10+ kiosků)
+
+Stejný image jako Přístup B, ale distribuce probíhá offline (USB disk, SD karta, síťový share).
+Vhodné pro: nasazení bez internetu na místě, velký počet kiosků, garantované verze.
 
 Vyžaduje Linux build stroj (Ubuntu 22.04 VM na Synology VMM).
 **Viz podrobný průvodce [`docs/ha-kiosk-builder.md`](ha-kiosk-builder.md)**
@@ -132,7 +220,7 @@ Build trvá **30–60 minut**. Výsledný image: `src/image/ha-kiosk-os-YYYY-MM-
 3. Edit Settings: `username=pi`, `SSH enabled`, `hostname`
 4. Po flashování zkopíruj `kiosk.conf` na boot partition
 
-### Co se stane při prvním startu (image přístup)
+### Co se stane při prvním startu (Přístup B a C)
 
 ```
 Boot → kiosk-firstboot.service detekuje kiosk.conf

@@ -42,6 +42,7 @@ KIOSK_ADDON_URL="${KIOSK_ADDON_URL:-}"
 
 log "Hostname:    ${KIOSK_HOSTNAME:-NEDEFINO}"
 log "HA URL:      ${KIOSK_HA_URL:-NEDEFINO}"
+log "HA User:     ${KIOSK_HA_USERNAME:-NEDEFINO}"
 log "Addon URL:   ${KIOSK_ADDON_URL:-není nastaven}"
 log "Dashboard:   ${KIOSK_DASHBOARD_URL:-NEDEFINO}"
 log "Síť:         ${KIOSK_NETWORK}"
@@ -175,6 +176,8 @@ if [ -n "${PHONE_HOME_URL:-}" ]; then
     REGISTER_PAYLOAD=$(cat <<JSON_EOF
 {
     "hostname": "${KIOSK_HOSTNAME:-kiosk}",
+    "ha_username": "${KIOSK_HA_USERNAME:-}",
+    "dashboard_url": "${KIOSK_DASHBOARD_URL:-}",
     "mac": "$(cat /sys/class/net/eth0/address 2>/dev/null || echo 'unknown')",
     "ip": "$(hostname -I | awk '{print $1}')"
 }

@@ -41,64 +41,91 @@ Postavena na čistém **RPi OS Lite 64-bit** rozšířeném o modulárně instal
 
 ---
 
-## Jak se nasazuje
+## Jak se nasazuje — tři přístupy
 
-### Primární přístup: Provisioning (doporučeno)
+### Přístup A: Provisioning ⭐ (1-2 kiosky, žádný build stroj)
 
 ```
 Flash stock RPi OS Lite 64-bit (RPi Imager)
-    +
-kiosk.conf na boot partition (vygenerovaný HA Addonem)
-    +
-sudo bash provision.sh (klonuje repo + instaluje moduly nativně)
-    =
-Hotový kiosk po rebootu (~20-40 min)
+    + kiosk.conf na boot partition (vygenerovaný HA Addonem)
+    + sudo bash provision.sh   ← klonuje repo, instaluje moduly nativně na ARM64
+    = Hotový kiosk (~20-40 min, z toho většinu čas apt-get)
 ```
 
-### Záloha: Image build (Ubuntu VM + QEMU)
-
-```
-RPi OS Lite 64-bit (upstream, nezměněný)
-    +
-build.sh (Ubuntu VM, QEMU ARM64 chroot)
-    +
-Tvoje moduly (src/modules/)
-    =
-ha-kiosk-os-YYYY-MM-DD.img
-```
-
-Při vydání nové verze RPi OS:
-1. Změníš číslo verze v `config/build.conf`
-2. Spustíš `sudo bash build.sh`
-3. Tvoje moduly se **nezměnily**, jen základ je novější
+**Výhody:** Nevyžaduje build stroj, vždy aktuální balíčky.
+**Vhodné pro:** První kiosk, testování, ojedinělá nasazení.
 
 ---
 
-## Životní cyklus kiosku
+### Přístup B: Base image + firstboot ⭐⭐ (3+ kiosků, opakované nasazení)
 
 ```
-FÁZE 1: Build image (jednou, nebo po upgradu OS)
-  → vývojář spustí build.sh na Linux stroji
-  → vznikne ha-kiosk-os.img
+1. JEDNOU: build.sh na Ubuntu VM → ha-kiosk-os-base.img (30-60 min)
+   (image má všechny moduly předinstalované, žádná device-specific konfigurace)
 
-FÁZE 2: Příprava SD karty (pro každý nový kiosk)
-  → uživatel stáhne ha-kiosk-os.img
-  → flashne přes RPi Imager
-  → z HA Addonu stáhne kiosk.conf
-  → zkopíruje kiosk.conf na boot oddíl SD karty
+2. PRO KAŽDÝ KIOSK:
+   Flash ha-kiosk-os-base.img (RPi Imager)
+    + kiosk.conf na boot partition
+    = Boot → firstboot.sh se spustí automaticky (~5 min)
+    = Chromium → HA dashboard ✓
+```
 
-FÁZE 3: Prvotní start (automatický)
-  → RPi se zapne
-  → firstboot.sh přečte kiosk.conf
-  → zaregistruje se do HA Addonu (phone-home)
-  → HA Addon potvrdí registraci, pošle SSH klíč
-  → RPi restartuje → Chromium → HA dashboard
+**Výhody:** Nasazení každého dalšího kiosku trvá jen ~5 min místo 20-40 min.
+**Vhodné pro:** Více kiosků, konzistentní prostředí, produkce.
+**Base image se obnovuje:** Při vydání nové verze RPi OS nebo aktualizaci modulů.
 
-FÁZE 4: Provoz
-  → Chromium kiosk mód, watchdog hlídá
-  → VNC/SSH pro vzdálenou správu
-  → HA Addon zobrazuje status kiosku
-  → Claude Code dostupný přes SSH pro vzdálené úpravy
+---
+
+### Přístup C: Vlastní image (offline nasazení, 10+ kiosků)
+
+```
+build.sh → ha-kiosk-os.img → flash → kiosk.conf → boot
+```
+
+Jako Přístup B, ale image se distribuje offline (USB disk, SD karta).
+
+---
+
+### Srovnání přístupů
+
+| | A: Provisioning | B: Base image | C: Offline image |
+|---|---|---|---|
+| Build stroj | Ne | Ano (Ubuntu VM) | Ano (Ubuntu VM) |
+| Čas nasazení | ~30 min | ~5 min | ~5 min |
+| Počet kiosků | 1-2 | 3+ | 10+ |
+| Vždy aktuální | Ano | Ne (jen při nové buildu) | Ne |
+| Doporučeno pro | Začátečníky, testování | Produkci | Bez internetu |
+
+---
+
+## Životní cyklus kiosku (Přístup A — Provisioning)
+
+```
+KROK 1: Příprava (v HA Addonu)
+  → Vytvoř HA uživatele pro kiosk (Settings → People → Add Person)
+  → V HA Addonu: "Přidat kiosk" → vyplň hostname, HA URL, HA username, token, dashboard
+  → Stáhni kiosk.conf
+
+KROK 2: Příprava SD karty
+  → Flash stock RPi OS Lite 64-bit přes RPi Imager (user=pi, SSH=on, hostname)
+  → Zkopíruj kiosk.conf na boot partition SD karty (jako kiosk.conf)
+
+KROK 3: Provisioning (automatický po SSH)
+  → SSH do RPi → sudo bash provision.sh
+  → Sleduj průběh na obrazovce (20-40 min)
+  → Závěrečný report v /var/log/kiosk-provision-report.txt
+
+KROK 4: Prvotní start (automatický)
+  → firstboot.sh nakonfiguruje hostname, síť, dashboard URL
+  → RPi se zaregistruje do HA Addonu (phone-home) → dostane SSH klíč
+  → kiosk.conf se smaže (bezpečnost — obsahuje token)
+  → RPi restartuje → Chromium → HA dashboard ✓
+
+KROK 5: Provoz
+  → Chromium kiosk mód, watchdog hlídá a restartuje při pádu
+  → VNC / SSH pro vzdálenou správu (bez fyzického přístupu)
+  → HA Addon zobrazuje stav a IP všech kiosků
+  → Claude Code dostupný přes SSH pro AI-asistované úpravy
 ```
 
 ---

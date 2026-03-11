@@ -18,13 +18,19 @@ Záloha: `build.sh` na Ubuntu 22.04 VM (Synology VMM) — x86 host + QEMU ARM64 
 ## Architektura (3 vrstvy)
 
 ```
-1. PROVISIONING (provision.sh) ← PRIMÁRNÍ PŘÍSTUP
-   Flash stock RPi OS Lite → SSH → sudo bash provision.sh
-   → klonuje repo → instaluje moduly nativně na ARM64 → firstboot konfigurace
-   → reboot → hotový kiosk
+1. NASAZENÍ — 3 přístupy:
 
-   ZÁLOHA: build.sh (Ubuntu VM + QEMU chroot → vlastní .img)
-   Použít když: offline nasazení, 10+ kiosků, garantované verze balíčků
+   A) PROVISIONING (provision.sh) ← PRO 1-2 KIOSKY, BEZ BUILD STROJE
+      Flash stock RPi OS Lite → SSH → sudo bash provision.sh
+      → klonuje repo → instaluje moduly nativně na ARM64 (~30 min)
+      → firstboot konfigurace → reboot → hotový kiosk
+
+   B) BASE IMAGE + FIRSTBOOT ← PRO 3+ KIOSKŮ, DOPORUČENO PRO PRODUKCI
+      1× build.sh na Ubuntu VM → ha-kiosk-os-base.img (předinstalované moduly)
+      Flash base image → přidej kiosk.conf → boot → firstboot.sh (~5 min) ✓
+
+   C) OFFLINE IMAGE ← PRO 10+ KIOSKŮ BEZ INTERNETU
+      Jako B, ale image se distribuje offline
 
 2. MODULY (src/modules/01-07)
    Každý modul = start_chroot_script + files/ (struktura odpovídá rootfs /)
@@ -36,7 +42,16 @@ Záloha: `build.sh` na Ubuntu 22.04 VM (Synology VMM) — x86 host + QEMU ARM64 
    Flask webová aplikace běžící v Home Assistant jako addon
    Spravuje kiosky: generuje kiosk.conf, přijímá phone-home registrace,
    poskytuje SSH veřejný klíč novým kioskům
+   Nově: ukládá HA username a dashboard URL z každého kiosku
 ```
+
+## HA uživatelský účet pro kiosk
+
+Každý kiosk se přihlašuje do HA pod dedikovaným uživatelským účtem.
+- Účet určuje: přístupová práva, výchozí dashboard
+- kiosk.conf obsahuje: `KIOSK_HA_USERNAME` a `KIOSK_HA_TOKEN` (LLAT pro tohoto uživatele)
+- Token vytvoří správce v HA profilu uživatele (Long-Lived Access Token)
+- **Nikdy** nepoužívej admin účet pro kiosky — vždy dedikovaný uživatel s omezenými právy
 
 ---
 

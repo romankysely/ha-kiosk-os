@@ -2,14 +2,14 @@
 
 ## Co projekt řeší
 
-FullpageOS je 32-bit (armhf) distribuce, která:
-- **Nepodporuje Claude Code** (vyžaduje 64-bit)
-- Je prakticky neudržovaná (poslední aktivita autora 2024)
-- Obsahuje x11vnc (slabší než RealVNC)
-- Nenabízí žádnou integraci s HA pro správu kiosků
+HA KioskOS je 64-bit RPi distribuce pro Home Assistant kiosky, která řeší:
+- Automatické přihlášení do HA dashboardu (Chromium kiosk mód + token injection)
+- Vzdálený přístup bez fyzické přítomnosti (VNC, SSH, Claude Code)
+- Multi-room audio z HA (PipeWire + Snapcast)
+- Centrální správu kiosků přes HA Addon (provisioning, monitoring)
+- HW video dekódování pro WebRTC kamery na Pi5
 
-HA KioskOS toto řeší: vlastní 64-bit image postavený na čistém RPi OS,
-rozšířený o předinstalované moduly a HA Addon pro správu.
+Postavena na čistém **RPi OS Lite 64-bit** rozšířeném o modulárně instalovatelné komponenty.
 
 ---
 
@@ -41,12 +41,26 @@ rozšířený o předinstalované moduly a HA Addon pro správu.
 
 ---
 
-## Jak vzniká image
+## Jak se nasazuje
+
+### Primární přístup: Provisioning (doporučeno)
+
+```
+Flash stock RPi OS Lite 64-bit (RPi Imager)
+    +
+kiosk.conf na boot partition (vygenerovaný HA Addonem)
+    +
+sudo bash provision.sh (klonuje repo + instaluje moduly nativně)
+    =
+Hotový kiosk po rebootu (~20-40 min)
+```
+
+### Záloha: Image build (Ubuntu VM + QEMU)
 
 ```
 RPi OS Lite 64-bit (upstream, nezměněný)
     +
-CustomPiOS build systém (git submodule)
+build.sh (Ubuntu VM, QEMU ARM64 chroot)
     +
 Tvoje moduly (src/modules/)
     =
@@ -55,7 +69,7 @@ ha-kiosk-os-YYYY-MM-DD.img
 
 Při vydání nové verze RPi OS:
 1. Změníš číslo verze v `config/build.conf`
-2. Spustíš `./build.sh`
+2. Spustíš `sudo bash build.sh`
 3. Tvoje moduly se **nezměnily**, jen základ je novější
 
 ---

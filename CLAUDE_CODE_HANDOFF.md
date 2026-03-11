@@ -8,14 +8,10 @@
 ## Kontext projektu
 
 Roman provozuje Home Assistant na Synology RS1619xs+ (Intel Xeon D-1527) přes VMM.
-Má RPi5 kiosky zobrazující HA dashboardy. Dosud používal FullpageOS (32-bit armhf)
-který nahrazujeme vlastní 64-bit distribucí.
+Má RPi5 kiosky zobrazující HA dashboardy.
 
-**Hlavní důvody přechodu z FullpageOS:**
-- FullpageOS je 32-bit (armhf) → nelze nainstalovat Claude Code
-- FullpageOS je prakticky neudržovaný projekt
-- x11vnc nahrazujeme RealVNC (rychlejší, stabilnější)
-- Chceme plnou kontrolu nad image a moduly
+Projekt **HA KioskOS** — vlastní 64-bit RPi distribuce postavená na čistém RPi OS Lite.
+Nasazení: flash stock RPi OS Lite → SSH → `sudo bash provision.sh` (nebo image build přes QEMU).
 
 ---
 
@@ -41,7 +37,7 @@ git checkout dev
 
 ### Moduly (src/modules/)
 
-Všech 6 modulů je plně implementováno — `start_chroot_script` + `files/`:
+Všech 7 modulů je plně implementováno — `start_chroot_script` + `files/`:
 
 | Modul | Co dělá |
 |-------|---------|
@@ -51,9 +47,17 @@ Všech 6 modulů je plně implementováno — `start_chroot_script` + `files/`:
 | `04-audio` | PipeWire + pipewire-pulse + wireplumber + snapclient |
 | `05-ha-bootstrap` | firstboot.sh (10 kroků), inject-ha-token.py (Chromium extension), phone-home |
 | `06-monitoring` | Glances přes pip3, web UI port 61208 |
+| `07-keyboard` | onboard virtuální klávesnice — VOLITELNÝ (jen pro dotykové kiosky) |
 
-### build.sh
-Plně přepsán a opraven. Klíčové opravy:
+### provision.sh (primární přístup)
+Spouští se na stock RPi OS Lite přes SSH:
+- Čeká na síť, klonuje repo do `/opt/ha-kiosk-os`
+- Načte `KIOSK_MODULES` z `/boot/firmware/kiosk.conf`
+- Pro každý modul: `cp -r files/ /` + `bash start_chroot_script`
+- Volá `firstboot.sh`, idempotentní přes `/etc/ha-kiosk-os_provisioned`
+
+### build.sh (záloha)
+Pro offline nasazení nebo 10+ kiosků. Klíčové opravy:
 - `xz --decompress --keep --stdout > file` (ne `-o` flag který neexistuje)
 - Kopírování `/etc/resolv.conf` do chroot (DNS pro apt-get)
 - `/dev/pts` a `/dev/shm` bind mounty
@@ -70,7 +74,7 @@ Flask webová aplikace s:
 - `/api/register` — phone-home endpoint (vrací SSH veřejný klíč)
 - Port 8099, HA ingress, hassio_api: true
 
-### Build stroj
+### Build stroj (záloha)
 Ubuntu 22.04 LTS VM na Synology VMM:
 - `setup-build-machine.sh` — jednorázová instalace závislostí
 - `docs/ha-kiosk-builder.md` — kompletní průvodce
@@ -104,9 +108,9 @@ LevelDB Python přístup nespolehlivý. Manifest V3 extension:
 - `inject.js` → `localStorage.setItem('hassTokens', ...)` při `document_start`
 - `chromium-kiosk` spouštěn s `--load-extension` flagou
 
-### Custom chroot místo CustomPiOS
-CustomPiOS submodule není inicializovaný. Vlastní implementace v `build.sh`
-dělá totéž (loop device + qemu-aarch64-static + chroot) bez závislosti.
+### Vlastní build.sh (záloha)
+Jednoduchý vzor (loop device + qemu-aarch64-static + chroot) bez externích závislostí.
+Primárně se nasazuje přes `provision.sh` nativně na ARM64.
 
 ### Phone-home přes dedikovaný port
 HA Addon naslouchá na portu 8099 (ne přes HA API).
@@ -126,7 +130,6 @@ HA Addon naslouchá na portu 8099 (ne přes HA API).
 
 ## Co zbývá
 
-- [ ] Spustit první build a opravit případné chyby
-- [ ] Aktualizovat SHA256 v `config/build.conf` na aktuální RPi OS verzi
-- [ ] Otestovat na fyzickém RPi 5
+- [ ] Otestovat provision.sh na fyzickém RPi 5
+- [ ] Nainstalovat a otestovat HA Addon
 - [ ] GitHub Actions workflow (low priority)

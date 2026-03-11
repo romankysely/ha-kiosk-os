@@ -6,9 +6,9 @@ Tento soubor se čte automaticky při každém spuštění `claude` v tomto repo
 
 ## Co projekt dělá
 
-Vlastní 64-bit RPi OS image pro Raspberry Pi 5 kiosky zobrazující Home Assistant dashboardy.
-Nahrazuje FullpageOS (32-bit, neudržovaný). Build probíhá na Ubuntu 22.04 VM (Synology VMM)
-pomocí `build.sh` — x86 host + QEMU ARM64 chroot.
+Vlastní 64-bit RPi OS distribuce pro Raspberry Pi 5 kiosky zobrazující Home Assistant dashboardy.
+Nasazuje se přes provisioning: flash stock RPi OS Lite → SSH → `sudo bash provision.sh`.
+Záloha: `build.sh` na Ubuntu 22.04 VM (Synology VMM) — x86 host + QEMU ARM64 chroot.
 
 **GitHub:** https://github.com/romankysely/ha-kiosk-os (privátní)
 **Větev pro vývoj:** `dev`
@@ -66,9 +66,9 @@ pomocí `build.sh` — x86 host + QEMU ARM64 chroot.
 
 ## Klíčová technická rozhodnutí
 
-### Proč vlastní chroot místo CustomPiOS
-CustomPiOS submodule není inicializovaný a přidával by komplexitu.
-`build.sh` implementuje stejný vzor (loop device + qemu chroot) bez závislosti.
+### Proč vlastní build.sh místo hotového build systému
+`build.sh` implementuje jednoduchý vzor (loop device + qemu-aarch64-static chroot) bez externích závislostí.
+Alternativně (a primárně): provisioning nativně přímo na ARM64 hardware — bez QEMU, jednodušší.
 
 ### Claude Code přes npm, ne native installer
 Native installer má bug na aarch64 — chybí binárky pro ARM64.

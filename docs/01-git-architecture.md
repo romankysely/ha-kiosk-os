@@ -2,16 +2,16 @@
 
 ## Princip
 
-Jeden privátní repozitář obsahuje vše. Nikdy nemodifikuješ upstream kód —
-pouze ho konzumuješ jako základ a stavíš na něm vlastní moduly.
+Jeden veřejný repozitář obsahuje vše. Základ je stock RPi OS Lite (není v repo),
+tvoje práce jsou moduly v `src/modules/`.
 
 ```
-github.com/TY/ha-kiosk-os  (privátní repo)
-│
-├── upstream/CustomPiOS/   ← git submodule, NIKDY neupravuješ
-│                             aktualizuješ příkazem: git submodule update --remote
+github.com/romankysely/ha-kiosk-os  (veřejný repo)
 │
 └── src/modules/           ← TVOJE práce, zde tvoříš a měníš
+    ├── 01-kiosk-base/
+    ├── 02-vnc/
+    ...
 ```
 
 ---
@@ -21,20 +21,18 @@ github.com/TY/ha-kiosk-os  (privátní repo)
 ```
 ha-kiosk-os/
 │
-├── .gitmodules            # Definice git submodule (CustomPiOS)
 ├── .gitignore             # Co NIKDY nejde do gitu (citlivé soubory!)
 ├── README.md
-├── build.sh               # Hlavní build skript
-│
-├── upstream/
-│   └── CustomPiOS/        # Git submodule — veřejný repo guysoft/CustomPiOS
-│                          # Obsahuje build systém pro RPi image
+├── CLAUDE.md              # Kontext pro Claude Code (čte se automaticky)
+├── provision.sh           # Primární nasazení: stock RPi OS → kiosk
+├── build.sh               # Záloha: Ubuntu VM + QEMU → vlastní .img
+├── setup-build-machine.sh # Příprava Ubuntu build stroje
 │
 ├── src/
 │   └── modules/
 │       ├── 01-kiosk-base/
-│       │   ├── start_chroot_script   # Bash skript spuštěný v chroot při buildu
-│       │   ├── files/                # Soubory kopírované do image
+│       │   ├── start_chroot_script   # Bash skript spuštěný při instalaci
+│       │   ├── files/                # Soubory kopírované do rootfs /
 │       │   │   ├── etc/
 │       │   │   ├── home/pi/
 │       │   │   └── usr/local/bin/
@@ -43,20 +41,20 @@ ha-kiosk-os/
 │       ├── 03-claude-code/
 │       ├── 04-audio/
 │       ├── 05-ha-bootstrap/
-│       └── 06-monitoring/
+│       ├── 06-monitoring/
+│       └── 07-keyboard/          # Volitelný (jen pro dotykové kiosky)
 │
 ├── config/
-│   ├── build.conf             # Verze RPi OS, název image, volby
+│   ├── build.conf             # Verze RPi OS, parametry buildu
 │   └── kiosk.conf.template    # Šablona config souboru (bez citlivých dat!)
 │
 ├── ha-addon/                  # HA Addon — Kiosk Builder
 │   ├── config.yaml
-│   ├── build.yaml
 │   ├── Dockerfile
+│   ├── run.sh
 │   └── app/
-│       ├── server.py
+│       ├── main.py
 │       └── templates/
-│           └── index.html
 │
 └── docs/
     ├── 00-overview.md
@@ -66,6 +64,7 @@ ha-kiosk-os/
     ├── 04-upgrade-upstream.md
     ├── 05-ha-addon.md
     ├── 06-security.md
+    ├── ha-kiosk-builder.md
     └── modules/
         ├── kiosk-base.md
         ├── vnc.md
@@ -187,12 +186,9 @@ __pycache__/
 ## Jak naklonovat repo na novém stroji
 
 ```bash
-# Klonování včetně submodulů
-git clone --recurse-submodules git@github.com:TY/ha-kiosk-os.git
-
-# Pokud jsi zapomněl --recurse-submodules
+git clone https://github.com/romankysely/ha-kiosk-os.git
 cd ha-kiosk-os
-git submodule update --init --recursive
+git checkout dev
 ```
 
 ---

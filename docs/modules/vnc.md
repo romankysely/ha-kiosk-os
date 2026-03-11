@@ -3,8 +3,7 @@
 ## Co dělá
 
 Instaluje a konfiguruje **RealVNC Server** pro vzdálený grafický přístup ke kiosku.
-Nahrazuje x11vnc který byl součástí FullpageOS — RealVNC je výrazně rychlejší
-a stabilnější řešení.
+RealVNC je výrazně rychlejší a stabilnější než alternativy (x11vnc apod.).
 
 ## Proč RealVNC (ne x11vnc)
 

@@ -1,7 +1,7 @@
 # HA KioskOS
 
 Specializovaná 64-bit RPi distribuce pro Home Assistant kiosky.
-Náhrada za FullpageOS — modernější, 64-bit, s plnou podporou Claude Code.
+Postavena na čistém RPi OS Lite 64-bit s modulárními komponentami pro HA kiosk nasazení.
 
 ## Co to je
 
@@ -22,17 +22,15 @@ rozšířený o předinstalované moduly pro HA kiosk nasazení.
 | Glances | Vzdálený monitoring systému |
 | HA Bootstrap | Phone-home registrace po prvním startu |
 
-## Rychlý start
+## Rychlý start (Provisioning — doporučeno)
 
 Viz [docs/02-how-to-build.md](docs/02-how-to-build.md)
 
 ```
-1. Naklonuj repo
-2. Nastav config/build.conf
-3. ./build.sh → vygeneruje .img
-4. Flashni přes RPi Imager (vlastní image)
-5. Na SD kartu zkopíruj kiosk.conf (generovaný z HA Addonu)
-6. SD → RPi → zapni → hotovo
+1. Flash stock RPi OS Lite 64-bit přes RPi Imager (user=pi, SSH enabled)
+2. Na boot partition zkopíruj kiosk.conf (generovaný z HA Addonu)
+3. SSH do RPi → sudo bash provision.sh (nebo curl | sudo bash)
+4. Čekej ~20-40 min → automatický reboot → kiosk hotový
 ```
 
 ## Dokumentace
@@ -57,19 +55,21 @@ Viz [docs/06-security.md](docs/06-security.md)
 
 ```
 ha-kiosk-os/
-├── upstream/          # Git submodule — CustomPiOS (nikdy neupravuj)
+├── provision.sh       # Primární nasazení: stock RPi OS → hotový kiosk
+├── build.sh           # Záloha: Ubuntu VM + QEMU → vlastní .img
+├── setup-build-machine.sh  # Příprava Ubuntu build stroje (jednorázově)
 ├── src/
-│   └── modules/       # Tvoje moduly
+│   └── modules/       # Moduly (start_chroot_script + files/)
 │       ├── 01-kiosk-base/
 │       ├── 02-vnc/
 │       ├── 03-claude-code/
 │       ├── 04-audio/
 │       ├── 05-ha-bootstrap/
-│       └── 06-monitoring/
-├── config/            # Konfigurace buildu (šablony, bez citlivých dat)
+│       ├── 06-monitoring/
+│       └── 07-keyboard/   # Volitelný (jen pro dotykové kiosky)
+├── config/            # Konfigurace (šablony, bez citlivých dat)
 ├── ha-addon/          # HA Addon — Kiosk Builder UI
 ├── docs/              # Veškerá dokumentace
-├── build.sh           # Hlavní build skript
 └── README.md
 ```
 

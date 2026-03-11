@@ -1,4 +1,0 @@
-[submodule "upstream/CustomPiOS"]
-	path = upstream/CustomPiOS
-	url = https://github.com/guysoft/CustomPiOS.git
-	branch = devel

@@ -5,8 +5,7 @@
 Instaluje **Node.js 20 LTS** a **Claude Code CLI** pro vzdálené AI-asistované
 úpravy konfigurace kiosku přes SSH.
 
-Toto je jeden z hlavních důvodů proč přecházíme z FullpageOS (32-bit armhf)
-na RPi OS Lite 64-bit — Claude Code vyžaduje aarch64.
+Claude Code vyžaduje 64-bit aarch64 — proto je HA KioskOS postavena na RPi OS Lite 64-bit.
 
 ## Co se instaluje
 

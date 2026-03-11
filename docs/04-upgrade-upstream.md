@@ -18,16 +18,7 @@ RPi OS vydání sleduj na:
 
 Hledáš: `YYYY-MM-DD-raspios-bookworm-arm64-lite.img.xz`
 
-### 2. Aktualizuj CustomPiOS submodule
-
-```bash
-cd ha-kiosk-os
-git submodule update --remote upstream/CustomPiOS
-git add upstream/CustomPiOS
-git commit -m "chore: update CustomPiOS submodule"
-```
-
-### 3. Změň verzi RPi OS v konfigu
+### 2. Změň verzi RPi OS v konfigu
 
 ```bash
 nano config/build.conf
@@ -42,14 +33,20 @@ RPI_OS_URL="https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_
 RPI_OS_URL="https://downloads.raspberrypi.com/raspios_lite_arm64/images/raspios_lite_arm64-2025-03-15/2025-03-15-raspios-bookworm-arm64-lite.img.xz"
 ```
 
-### 4. Rebuild
+### 3. Rebuild nebo provisioning
 
+**Provisioning přístup** (doporučeno — testuje na fyzickém hardware):
 ```bash
-git checkout dev
-sudo ./build.sh
+# Flash čerstvý stock RPi OS Lite, SSH → provision.sh
 ```
 
-### 5. Testování
+**Image build** (záloha):
+```bash
+git checkout dev
+sudo bash build.sh
+```
+
+### 4. Testování
 
 Před mergem do main:
 - [ ] Flashni nový image na testovací SD kartu
@@ -61,7 +58,7 @@ Před mergem do main:
 - [ ] Audio funguje
 - [ ] Watchdog funguje (kill chromium → restart do 15s)
 
-### 6. Commit a tag
+### 5. Commit a tag
 
 ```bash
 git add config/build.conf
@@ -70,16 +67,6 @@ git checkout main
 git merge dev
 git tag v1.1.0
 git push origin main --tags
-```
-
----
-
-## Upgrade pouze CustomPiOS (bez nového RPi OS)
-
-```bash
-git submodule update --remote upstream/CustomPiOS
-git add upstream/CustomPiOS
-git commit -m "chore: update CustomPiOS"
 ```
 
 ---
@@ -99,4 +86,4 @@ git commit -m "chore: update CustomPiOS"
 
 - Bookworm (Debian 12) je aktuální základ — neupgraduj na Trixie dokud není stable
 - Při přechodu na novou verzi Debianu (Bookworm→Trixie) ověř VŠECHNY moduly
-- CustomPiOS submodule a RPi OS verze jsou na sobě nezávislé — můžeš upgradovat každé zvlášť
+- Tvoje moduly (`src/modules/`) jsou od RPi OS verze zcela nezávislé

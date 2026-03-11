@@ -53,6 +53,15 @@ Přes [RPi Imager](https://www.raspberrypi.com/software/):
 Po flashování je boot partition viditelná ve Windows Průzkumníkovi jako USB disk.
 Zkopíruj `kiosk.conf` vedle ostatních souborů (cmdline.txt, config.txt...).
 
+### Krok 3b — Vlož SD kartu do RPi a zapni
+
+1. Vysuň SD kartu z čtečky / počítače
+2. Vlož ji do Raspberry Pi 5 (slot je na spodní straně desky)
+3. Připoj ethernet kabel (doporučeno pro provisioning)
+4. Připoj napájení (USB-C 27W) → RPi se automaticky spustí
+
+Počkej ~30-60 sekund než RPi nabootuje a připojí se do sítě.
+
 ### Krok 4 — SSH do RPi a spusť provisioning
 
 ```bash

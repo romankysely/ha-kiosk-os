@@ -1,5 +1,5 @@
 name: "HA KioskOS — Kiosk Builder"
-version: "1.0.2"
+version: "1.0.3"
 slug: "ha_kiosk_os"
 description: "Správa HA kiosků — generování kiosk.conf, registrace RPi, status"
 url: "https://github.com/romankysely/ha-kiosk-os"

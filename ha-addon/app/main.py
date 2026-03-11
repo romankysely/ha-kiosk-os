@@ -14,6 +14,25 @@ from flask import Flask, render_template, request, jsonify, send_file, redirect,
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "ha-kiosk-os-secret-change-me")
 
+
+class IngressMiddleware:
+    """Nastaví SCRIPT_NAME podle X-Ingress-Path od HA Supervisoru.
+    Bez toho url_for() generuje absolutní cesty bez ingress prefixu → 404."""
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        ingress_path = environ.get("HTTP_X_INGRESS_PATH", "").rstrip("/")
+        if ingress_path:
+            environ["SCRIPT_NAME"] = ingress_path
+            path = environ.get("PATH_INFO", "")
+            if path.startswith(ingress_path):
+                environ["PATH_INFO"] = path[len(ingress_path):] or "/"
+        return self.wsgi_app(environ, start_response)
+
+
+app.wsgi_app = IngressMiddleware(app.wsgi_app)
+
 # ---------------------------------------------------------------------------
 # Cesty k datovým souborům
 # ---------------------------------------------------------------------------

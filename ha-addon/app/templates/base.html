@@ -4,24 +4,305 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kiosk Builder{% endblock %} — HA KioskOS</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+    :root {
+        --primary:       #03a9f4;
+        --primary-dark:  #0288d1;
+        --primary-light: #e1f5fe;
+        --success:       #22c55e;
+        --success-bg:    #dcfce7;
+        --success-text:  #166534;
+        --warning:       #f59e0b;
+        --warning-bg:    #fef9c3;
+        --warning-text:  #854d0e;
+        --danger:        #ef4444;
+        --danger-bg:     #fee2e2;
+        --danger-text:   #991b1b;
+        --nav-bg:        #0f172a;
+        --nav-border:    #1e293b;
+        --surface:       #ffffff;
+        --bg:            #f0f4f8;
+        --border:        #e2e8f0;
+        --text:          #0f172a;
+        --text-muted:    #64748b;
+        --text-subtle:   #94a3b8;
+        --online:        #22c55e;
+        --offline:       #94a3b8;
+        --radius:        10px;
+        --radius-sm:     6px;
+        --shadow:        0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04);
+        --shadow-md:     0 4px 12px rgba(0,0,0,.1);
+        --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        font-family: var(--font); font-size: 15px; line-height: 1.6;
+        background: var(--bg); color: var(--text);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navbar */
+    .navbar {
+        background: var(--nav-bg); border-bottom: 1px solid var(--nav-border);
+        height: 58px; display: flex; align-items: center;
+        justify-content: space-between; padding: 0 1.5rem;
+        position: sticky; top: 0; z-index: 200;
+        box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .nav-brand {
+        display: flex; align-items: center; gap: .6rem;
+        font-weight: 700; font-size: 1rem; color: #f8fafc; letter-spacing: -.01em;
+    }
+    .nav-logo {
+        width: 30px; height: 30px; background: var(--primary);
+        border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .nav-logo svg { width: 18px; height: 18px; fill: white; }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-link {
+        color: #94a3b8; text-decoration: none; padding: 7px 14px;
+        border-radius: var(--radius-sm); font-size: .875rem; font-weight: 500;
+        transition: color .15s, background .15s;
+    }
+    .nav-link:hover { color: #f1f5f9; background: rgba(255,255,255,.07); }
+    .nav-link.active { color: #f1f5f9; background: rgba(3,169,244,.18); }
+
+    /* Layout */
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.75rem 1.5rem; }
+
+    /* Alerts */
+    .alert {
+        padding: .75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1rem;
+        font-size: .9rem; font-weight: 500;
+    }
+    .alert-success { background: var(--success-bg); color: var(--success-text); border-left: 3px solid var(--success); }
+    .alert-error   { background: var(--danger-bg);  color: var(--danger-text);  border-left: 3px solid var(--danger); }
+
+    /* Page header */
+    .page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 1.5rem; gap: 1rem;
+    }
+    .page-header h1 {
+        font-size: 1.5rem; font-weight: 700; letter-spacing: -.02em;
+        display: flex; align-items: center; gap: .6rem;
+    }
+    .header-left { display: flex; align-items: center; gap: .75rem; }
+
+    /* Buttons */
+    .btn {
+        display: inline-flex; align-items: center; gap: .4rem;
+        padding: 8px 16px; border: none; border-radius: var(--radius-sm);
+        font-family: var(--font); font-size: .875rem; font-weight: 600;
+        cursor: pointer; text-decoration: none;
+        transition: all .15s; white-space: nowrap; line-height: 1.4;
+    }
+    .btn-primary   { background: var(--primary); color: #fff; box-shadow: 0 1px 3px rgba(3,169,244,.35); }
+    .btn-primary:hover { background: var(--primary-dark); box-shadow: 0 3px 8px rgba(3,169,244,.4); transform: translateY(-1px); }
+    .btn-secondary { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg); border-color: #c1cfe0; color: var(--text); }
+    .btn-danger    { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-sm  { padding: 5px 11px; font-size: .8rem; }
+    .btn-lg  { padding: 11px 22px; font-size: .95rem; }
+    .btn-block { width: 100%; justify-content: center; margin-bottom: .5rem; }
+
+    /* Status dot */
+    .status-dot {
+        width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; display: inline-block;
+    }
+    .status-dot.online {
+        background: var(--online); box-shadow: 0 0 0 3px rgba(34,197,94,.2);
+        animation: pulse-green 2s infinite;
+    }
+    .status-dot.offline { background: var(--offline); }
+    @keyframes pulse-green {
+        0%,100% { box-shadow: 0 0 0 3px rgba(34,197,94,.2); }
+        50%      { box-shadow: 0 0 0 5px rgba(34,197,94,.1); }
+    }
+
+    /* Badges */
+    .badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 9px; border-radius: 20px; font-size: .75rem; font-weight: 600;
+    }
+    .badge-green  { background: var(--success-bg); color: var(--success-text); }
+    .badge-yellow { background: var(--warning-bg); color: var(--warning-text); }
+    .badge-blue   { background: var(--primary-light); color: #0369a1; }
+    .badge-gray   { background: #f1f5f9; color: var(--text-muted); }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: .8rem; font-weight: 600; }
+
+    /* Kiosk grid */
+    .kiosk-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .kiosk-card {
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--border); padding: 1.1rem 1.25rem;
+        box-shadow: var(--shadow); transition: box-shadow .2s, transform .2s;
+        display: flex; flex-direction: column; gap: .75rem;
+    }
+    .kiosk-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .kiosk-online { border-top: 3px solid var(--online); }
+    .kiosk-offline { border-top: 3px solid var(--border); }
+    .kiosk-header { display: flex; align-items: center; justify-content: space-between; }
+    .kiosk-hostname { font-weight: 700; font-size: 1.05rem; font-family: 'SF Mono','Fira Code',monospace; }
+    .kiosk-status { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--text-muted); font-weight: 500; }
+    .kiosk-info { display: flex; flex-direction: column; }
+    .info-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 5px 0; font-size: .85rem; border-bottom: 1px solid #f8fafc;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--text-subtle); }
+    .info-value { font-weight: 500; text-align: right; }
+    .url-link { color: var(--primary); text-decoration: none; font-size: .8rem; }
+    .url-link:hover { text-decoration: underline; }
+    .kiosk-badges { display: flex; gap: .35rem; flex-wrap: wrap; }
+    .kiosk-actions { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: auto; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center; padding: 4rem 2rem;
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--border); box-shadow: var(--shadow);
+    }
+    .empty-icon {
+        width: 72px; height: 72px; border-radius: 18px;
+        background: var(--primary-light); margin: 0 auto 1.25rem;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .empty-icon svg { width: 36px; height: 36px; fill: var(--primary); }
+    .empty-state h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: .5rem; }
+    .empty-state p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: .95rem; }
+    .empty-actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+
+    /* Form */
+    .kiosk-form { max-width: 720px; }
+    .form-section {
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--border); padding: 1.4rem;
+        margin-bottom: 1rem; box-shadow: var(--shadow);
+    }
+    .section-title {
+        font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+        text-transform: uppercase; color: var(--text-subtle);
+        margin-bottom: 1.1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .optional { font-size: .75rem; font-weight: 400; color: var(--text-subtle); text-transform: none; letter-spacing: 0; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group:last-child { margin-bottom: 0; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+    label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .35rem; color: var(--text); }
+    .required { color: var(--danger); margin-left: 2px; }
+    input[type="text"], input[type="url"], input[type="password"], select {
+        width: 100%; padding: 9px 12px;
+        border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+        font-family: var(--font); font-size: .9rem; color: var(--text);
+        background: #fff; transition: border-color .15s, box-shadow .15s; appearance: none;
+    }
+    input:focus, select:focus {
+        outline: none; border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(3,169,244,.15);
+    }
+    input::placeholder { color: var(--text-subtle); }
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+    }
+    .help { display: block; font-size: .8rem; color: var(--text-subtle); margin-top: .3rem; line-height: 1.4; }
+    .network-section { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+    .form-actions { display: flex; gap: .75rem; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; }
+
+    /* Cards (detail) */
+    .card {
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--border); padding: 1.25rem; box-shadow: var(--shadow);
+    }
+    .card-title {
+        font-size: .78rem; font-weight: 700; letter-spacing: .07em;
+        text-transform: uppercase; color: var(--text-subtle);
+        margin-bottom: 1rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .info-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    .info-table tr { border-bottom: 1px solid #f8fafc; }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td { padding: 7px 0; }
+    .info-table td:first-child { color: var(--text-subtle); width: 42%; font-weight: 500; }
+    .info-table td:last-child { font-weight: 500; }
+    .info-table a { color: var(--primary); text-decoration: none; }
+    .info-table a:hover { text-decoration: underline; }
+    .action-list { display: flex; flex-direction: column; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: .75rem 0; }
+
+    /* Wizard */
+    .wizard-steps { display: flex; flex-direction: column; gap: 1.5rem; max-width: 760px; }
+    .wizard-step { display: flex; gap: 1.25rem; align-items: flex-start; }
+    .step-number {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: var(--primary); color: white; font-weight: 700;
+        font-size: 1rem; display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; box-shadow: 0 3px 8px rgba(3,169,244,.35);
+    }
+    .step-content {
+        background: var(--surface); border-radius: var(--radius);
+        border: 1px solid var(--border); padding: 1.25rem; flex: 1; box-shadow: var(--shadow);
+    }
+    .step-content h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: .75rem; }
+    .step-content p { margin-bottom: .75rem; color: var(--text-muted); font-size: .9rem; }
+    .info-box {
+        background: var(--primary-light); color: #0369a1; border-radius: var(--radius-sm);
+        padding: .75rem 1rem; font-size: .875rem; margin-top: .75rem; border-left: 3px solid var(--primary);
+    }
+    .warning-box {
+        background: var(--warning-bg); color: var(--warning-text); border-radius: var(--radius-sm);
+        padding: .75rem 1rem; font-size: .875rem; margin-top: .75rem; border-left: 3px solid var(--warning);
+    }
+    .imager-steps { margin: .75rem 0; }
+    .imager-step { display: flex; gap: 1rem; padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .875rem; }
+    .imager-step:last-child { border-bottom: none; }
+    .imager-label { font-weight: 600; min-width: 150px; }
+    .settings-table { margin: .75rem 0; }
+    .settings-table table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    .settings-table td { padding: .4rem .6rem; border-bottom: 1px solid var(--border); }
+    .settings-table td:first-child { font-weight: 600; width: 30%; color: var(--text-muted); }
+    .step-list { margin: .75rem 0 0 1.25rem; font-size: .9rem; color: var(--text-muted); }
+    .step-list li { margin-bottom: .4rem; }
+    .boot-sequence { display: flex; flex-direction: column; align-items: flex-start; margin: .75rem 0; gap: 2px; }
+    .boot-item { background: var(--bg); border-radius: var(--radius-sm); padding: .35rem .8rem; font-size: .875rem; font-weight: 500; }
+    .boot-arrow { color: var(--text-subtle); padding: 0 .8rem; font-size: 1.1rem; }
+
+    /* Misc */
+    .text-muted { color: var(--text-muted); font-size: .875rem; }
+    .section-footer { margin-top: 1.5rem; }
+    code {
+        background: #f1f5f9; color: #0f172a; padding: 2px 6px; border-radius: 4px;
+        font-size: .85em; font-family: 'SF Mono','Fira Code','Fira Mono',monospace;
+    }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-brand">
-            <span class="nav-icon">📺</span>
-            <span>HA KioskOS</span>
+            <div class="nav-logo">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z"/>
+                    <path d="M5 7h14v2H5zm0 4h14v2H5zm0 4h8v2H5z" opacity=".6"/>
+                </svg>
+            </div>
+            HA KioskOS
         </div>
         <div class="nav-links">
-            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
-                📋 Kiosky
-            </a>
-            <a href="{{ url_for('add_kiosk') }}" class="nav-link {% if request.endpoint == 'add_kiosk' %}active{% endif %}">
-                ➕ Přidat kiosk
-            </a>
-            <a href="{{ url_for('wizard') }}" class="nav-link {% if request.endpoint == 'wizard' %}active{% endif %}">
-                🧙 Průvodce
-            </a>
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Kiosky</a>
+            <a href="{{ url_for('add_kiosk') }}" class="nav-link {% if request.endpoint == 'add_kiosk' %}active{% endif %}">+ Přidat kiosk</a>
+            <a href="{{ url_for('wizard') }}" class="nav-link {% if request.endpoint == 'wizard' %}active{% endif %}">Průvodce</a>
         </div>
     </nav>
 
@@ -36,7 +317,5 @@
 
         {% block content %}{% endblock %}
     </main>
-
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

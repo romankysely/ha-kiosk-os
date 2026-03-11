@@ -38,8 +38,15 @@ Moduly se instalují nativně na ARM64 hardware — jednoduché a spolehlivé.
 Přes [RPi Imager](https://www.raspberrypi.com/software/):
 - Device: **Raspberry Pi 5**
 - OS: **Raspberry Pi OS Lite (64-bit)**
-- Edit Settings: `username=pi`, `SSH enabled`, `hostname=kiosk-XX`
-- **WiFi NEVYPLŇUJ** — řeší se přes kiosk.conf (nebo nech prázdné pro LAN)
+- Edit Settings:
+  - `username=pi` ← **povinné**, moduly hardcodují `/home/pi/`
+  - `SSH enabled` ← **povinné**, jinak se nedostaneš na RPi
+  - `hostname=kiosk-XX` ← volitelné, firstboot.sh ho přepíše z kiosk.conf
+
+**WiFi:**
+- **LAN (doporučeno pro provisioning):** WiFi nevyplňuj, zapoj ethernet kabel
+- **WiFi kiosk:** WiFi vyplnit v Imageru — provision.sh potřebuje internet ihned při startu
+  (`KIOSK_NETWORK=wifi` v kiosk.conf pak WiFi zachová i po dokončení firstbootu)
 
 ### Krok 3 — Zkopíruj kiosk.conf na boot partition
 

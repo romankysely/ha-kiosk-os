@@ -1,0 +1,19 @@
+# HA KioskOS — RealVNC Server konfigurace
+# Soubor: /etc/vnc/config.d/common.custom
+# Platí pro vncserver-x11-serviced (service mode — sdílí :0)
+
+# Autentizace přes systémový účet pi (PAM)
+Authentication=SystemAuth
+
+# Šifrování: vždy zapnuto (TLS)
+Encryption=AlwaysOn
+
+# Port (výchozí VNC)
+RfbPort=5900
+
+# Zakázat cloud připojení (chceme jen LAN přístup)
+ConnectCloudEnabled=false
+
+# Omezení na LAN — VNC je dostupný jen z lokální sítě
+# (firewall na Unifi routeru toto dále chrání)
+# Pokud bys chtěl bind jen na určité rozhraní: InterfaceAddresses=eth0

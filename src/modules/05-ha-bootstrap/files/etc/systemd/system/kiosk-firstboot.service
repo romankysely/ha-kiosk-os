@@ -1,0 +1,19 @@
+[Unit]
+Description=HA KioskOS — Firstboot konfigurace
+After=network-online.target
+Wants=network-online.target
+# Spustí se pouze pokud existuje kiosk.conf na boot oddílu
+ConditionPathExists=/boot/firmware/kiosk.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/firstboot.sh
+RemainAfterExit=no
+# Logovat do journalu i na konzoli (viditelné při bootu)
+StandardOutput=journal+console
+StandardError=journal+console
+# Logovat také do souboru
+Environment=FIRSTBOOT_LOG=/var/log/kiosk-firstboot.log
+
+[Install]
+WantedBy=multi-user.target

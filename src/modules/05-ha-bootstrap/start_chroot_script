@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Modul 05-ha-bootstrap — start_chroot_script
+# Instaluje firstboot systém pro automatickou konfiguraci kiosku při prvním startu
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="05-ha-bootstrap"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Závislosti pro firstboot.sh a inject-ha-token.py
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji závislosti..."
+
+apt-get update -y
+apt-get install -y \
+    python3 \
+    python3-requests \
+    curl \
+    jq
+
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# 2. Nastavení oprávnění pro skripty (zkopírované z files/)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Nastavuji oprávnění..."
+
+chmod +x /usr/local/bin/firstboot.sh
+chmod +x /usr/local/bin/inject-ha-token.py
+
+# ---------------------------------------------------------------------------
+# 3. Povolení firstboot service
+#    Service se sama zakáže po úspěšném prvním spuštění
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Povoluji kiosk-firstboot.service..."
+
+systemctl enable kiosk-firstboot.service
+
+echo "[${MODULE_NAME}] Instalace dokončena."
+echo "[${MODULE_NAME}] Firstboot proběhne při prvním startu kiosku."
+echo "[${MODULE_NAME}] Vyžaduje /boot/firmware/kiosk.conf na boot oddílu."

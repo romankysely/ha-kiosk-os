@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kiosk Builder{% endblock %} — HA KioskOS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="nav-icon">📺</span>
+            <span>HA KioskOS</span>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                📋 Kiosky
+            </a>
+            <a href="{{ url_for('add_kiosk') }}" class="nav-link {% if request.endpoint == 'add_kiosk' %}active{% endif %}">
+                ➕ Přidat kiosk
+            </a>
+            <a href="{{ url_for('wizard') }}" class="nav-link {% if request.endpoint == 'wizard' %}active{% endif %}">
+                🧙 Průvodce
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

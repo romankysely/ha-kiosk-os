@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{{ kiosk.hostname }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-left">
+        <h1>
+            <span class="status-dot {% if kiosk.online %}online{% else %}offline{% endif %}"></span>
+            {{ kiosk.hostname }}
+        </h1>
+        <span class="status-badge {% if kiosk.online %}badge-green{% else %}badge-gray{% endif %}">
+            {{ 'Online' if kiosk.online else 'Offline' }}
+        </span>
+    </div>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Zpět</a>
+</div>
+
+<div class="detail-grid">
+    <!-- Info karta -->
+    <div class="card">
+        <h3 class="card-title">📡 Stav</h3>
+        <table class="info-table">
+            <tr><td>Hostname</td><td><code>{{ kiosk.hostname }}</code></td></tr>
+            <tr><td>IP adresa</td><td>{{ kiosk.last_ip or '—' }}</td></tr>
+            <tr><td>MAC adresa</td><td>{{ kiosk.mac or '—' }}</td></tr>
+            <tr><td>Poslední kontakt</td><td>{{ kiosk.last_seen[:16].replace('T', ' ') if kiosk.last_seen else '—' }}</td></tr>
+            <tr><td>Registrace</td><td>{{ '✓ Zaregistrován' if kiosk.registered else '⏳ Čeká na firstboot' }}</td></tr>
+            <tr><td>Přidán</td><td>{{ kiosk.created[:10] if kiosk.created else '—' }}</td></tr>
+        </table>
+    </div>
+
+    <!-- Konfigurace -->
+    <div class="card">
+        <h3 class="card-title">⚙️ Konfigurace</h3>
+        <table class="info-table">
+            <tr><td>HA URL</td><td><a href="{{ kiosk.ha_url }}" target="_blank">{{ kiosk.ha_url }}</a></td></tr>
+            <tr><td>Dashboard</td><td><a href="{{ kiosk.dashboard_url }}" target="_blank">{{ kiosk.dashboard_url | truncate(40) }}</a></td></tr>
+            <tr><td>Rozlišení</td><td>{{ kiosk.resolution }} (rotace {{ kiosk.rotation }}°)</td></tr>
+            <tr><td>Síť</td><td>{{ kiosk.network }}</td></tr>
+            {% if kiosk.network == 'static' %}
+            <tr><td>Statická IP</td><td>{{ kiosk.static_ip }}</td></tr>
+            {% endif %}
+            {% if kiosk.network == 'wifi' %}
+            <tr><td>WiFi SSID</td><td>{{ kiosk.wifi_ssid }}</td></tr>
+            {% endif %}
+            <tr><td>Audio výstup</td><td>{{ kiosk.audio_output }}</td></tr>
+            {% if kiosk.snapcast_host %}
+            <tr><td>Snapcast</td><td>{{ kiosk.snapcast_host }}</td></tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <!-- Akce -->
+    <div class="card">
+        <h3 class="card-title">🛠 Akce</h3>
+        <div class="action-list">
+            <a href="{{ url_for('download_conf', hostname=kiosk.hostname) }}"
+               class="btn btn-primary btn-block">
+                ⬇ Stáhnout kiosk.conf
+            </a>
+
+            {% if kiosk.last_ip %}
+            <a href="http://{{ kiosk.last_ip }}:61208" target="_blank"
+               class="btn btn-secondary btn-block">
+                📊 Glances monitoring
+            </a>
+            <a href="http://{{ kiosk.last_ip }}:5900" target="_blank"
+               class="btn btn-secondary btn-block">
+                🖥 VNC (port 5900)
+            </a>
+            {% endif %}
+
+            <hr class="divider">
+
+            <form method="POST" action="{{ url_for('delete_kiosk', hostname=kiosk.hostname) }}"
+                  onsubmit="return confirm('Opravdu smazat kiosk {{ kiosk.hostname }}?')">
+                <button type="submit" class="btn btn-danger btn-block">
+                    🗑 Smazat kiosk
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

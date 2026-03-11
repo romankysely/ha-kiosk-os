@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Modul 04-audio — start_chroot_script
+# Instaluje PipeWire audio stack a Snapcast klienta
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="04-audio"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Instalace PipeWire + Snapcast
+#    RPi OS Bookworm (2024+) používá PipeWire jako výchozí audio systém
+#    pipewire-pulse zajistí kompatibilitu s PulseAudio API (pro snapclient)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji PipeWire + Snapcast..."
+
+apt-get update -y
+apt-get install -y \
+    pipewire \
+    pipewire-pulse \
+    wireplumber \
+    snapclient
+
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# 2. Povolení Snapcast klienta
+#    Snapcast host se nastaví při firstboot z kiosk.conf
+#    (nahradí __SNAPCAST_HOST__ v /etc/default/snapclient)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Povoluji snapclient..."
+
+systemctl enable snapclient.service
+
+# ---------------------------------------------------------------------------
+# 3. Přidání pi do skupiny audio
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Přidávám pi do skupiny audio..."
+
+usermod -aG audio pi 2>/dev/null || true
+
+echo "[${MODULE_NAME}] Instalace dokončena."
+echo "[${MODULE_NAME}] POZNÁMKA: Snapcast host se nastaví při firstboot"
+echo "[${MODULE_NAME}]           z KIOSK_SNAPCAST_HOST v kiosk.conf"

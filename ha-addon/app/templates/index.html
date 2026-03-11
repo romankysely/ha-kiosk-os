@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Kiosky</h1>
+    <a href="{{ url_for('add_kiosk') }}" class="btn btn-primary">➕ Přidat kiosk</a>
+</div>
+
+{% if not kiosks %}
+<div class="empty-state">
+    <div class="empty-icon">📺</div>
+    <h2>Zatím žádné kiosky</h2>
+    <p>Začni přidáním prvního kiosku a stažením kiosk.conf pro SD kartu.</p>
+    <div class="empty-actions">
+        <a href="{{ url_for('add_kiosk') }}" class="btn btn-primary">➕ Přidat první kiosk</a>
+        <a href="{{ url_for('wizard') }}" class="btn btn-secondary">🧙 Průvodce instalací</a>
+    </div>
+</div>
+{% else %}
+<div class="kiosk-grid">
+    {% for kiosk in kiosks %}
+    <div class="kiosk-card {% if kiosk.online %}kiosk-online{% else %}kiosk-offline{% endif %}">
+        <div class="kiosk-header">
+            <div class="kiosk-status">
+                <span class="status-dot {% if kiosk.online %}online{% else %}offline{% endif %}"></span>
+                <span class="status-text">{{ 'Online' if kiosk.online else 'Offline' }}</span>
+            </div>
+            <div class="kiosk-hostname">{{ kiosk.hostname }}</div>
+        </div>
+
+        <div class="kiosk-info">
+            {% if kiosk.last_ip %}
+            <div class="info-row">
+                <span class="info-label">IP adresa</span>
+                <span class="info-value">{{ kiosk.last_ip }}</span>
+            </div>
+            {% endif %}
+            {% if kiosk.last_seen %}
+            <div class="info-row">
+                <span class="info-label">Poslední kontakt</span>
+                <span class="info-value" title="{{ kiosk.last_seen }}">
+                    {{ kiosk.last_seen[:16].replace('T', ' ') }}
+                </span>
+            </div>
+            {% endif %}
+            {% if kiosk.dashboard_url %}
+            <div class="info-row">
+                <span class="info-label">Dashboard</span>
+                <span class="info-value">
+                    <a href="{{ kiosk.dashboard_url }}" target="_blank" class="url-link">
+                        {{ kiosk.dashboard_url | truncate(40) }}
+                    </a>
+                </span>
+            </div>
+            {% endif %}
+            {% if kiosk.resolution %}
+            <div class="info-row">
+                <span class="info-label">Rozlišení</span>
+                <span class="info-value">{{ kiosk.resolution }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="kiosk-badges">
+            {% if kiosk.registered %}
+            <span class="badge badge-green">✓ Zaregistrován</span>
+            {% else %}
+            <span class="badge badge-yellow">⏳ Čeká na firstboot</span>
+            {% endif %}
+            {% if kiosk.auto_registered %}
+            <span class="badge badge-blue">Auto</span>
+            {% endif %}
+        </div>
+
+        <div class="kiosk-actions">
+            <a href="{{ url_for('download_conf', hostname=kiosk.hostname) }}"
+               class="btn btn-sm btn-primary" title="Stáhnout kiosk.conf pro SD kartu">
+                ⬇ kiosk.conf
+            </a>
+            {% if kiosk.last_ip %}
+            <a href="http://{{ kiosk.last_ip }}:61208" target="_blank"
+               class="btn btn-sm btn-secondary" title="Otevřít Glances monitoring">
+                📊 Glances
+            </a>
+            {% endif %}
+            <a href="{{ url_for('kiosk_detail', hostname=kiosk.hostname) }}"
+               class="btn btn-sm btn-secondary">
+                🔍 Detail
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section-footer">
+    <p class="text-muted">
+        💡 <strong>Nový kiosk?</strong> Přidej ho výše, stáhni kiosk.conf a zkopíruj na boot oddíl SD karty.
+        Viz <a href="{{ url_for('wizard') }}">Průvodce instalací</a>.
+    </p>
+</div>
+{% endblock %}

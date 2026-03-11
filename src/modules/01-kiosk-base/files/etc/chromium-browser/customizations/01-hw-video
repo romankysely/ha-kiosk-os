@@ -1,0 +1,6 @@
+# HA KioskOS — Chromium HW video dekódování (Pi5, aarch64)
+# Soubor je načítán chromium-browser při startu
+
+CHROMIUM_FLAGS="${CHROMIUM_FLAGS} --enable-features=VaapiVideoDecoder,VaapiVideoEncoder"
+CHROMIUM_FLAGS="${CHROMIUM_FLAGS} --use-gl=egl"
+CHROMIUM_FLAGS="${CHROMIUM_FLAGS} --ignore-gpu-blocklist"

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Průvodce instalací{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🧙 Průvodce instalací</h1>
+</div>
+
+<div class="wizard-steps">
+
+    <!-- Krok 1 -->
+    <div class="wizard-step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+            <h2>Stáhni HA KioskOS image</h2>
+            <p>Stáhni si předpřipravený image pro Raspberry Pi 5:</p>
+            <a href="{{ download_url }}" class="btn btn-primary" target="_blank">
+                ⬇ Stáhnout ha-kiosk-os.img.xz
+            </a>
+            <div class="info-box">
+                <strong>💡 Tip:</strong> Soubor je cca 2 GB (komprimovaný .xz).
+                Alternativně si sestav vlastní image pomocí <code>build.sh</code>
+                — viz <a href="https://github.com/romankysely/ha-kiosk-os" target="_blank">README na GitHubu</a>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Krok 2 -->
+    <div class="wizard-step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+            <h2>Vygeneruj kiosk.conf</h2>
+            <p>Přejdi na <strong>Přidat kiosk</strong> a vyplň konfiguraci pro nový kiosk.</p>
+            <a href="{{ url_for('add_kiosk') }}" class="btn btn-primary">➕ Přidat kiosk</a>
+            <p>Po uložení se automaticky stáhne soubor <code>kiosk.conf</code>.</p>
+
+            <div class="info-box">
+                <strong>🔑 HA Token:</strong> V Home Assistant přejdi na
+                <em>Profil → Bezpečnost → Dlouhodobé přístupové tokeny</em>
+                a vytvoř nový token (např. "kiosk1").
+            </div>
+        </div>
+    </div>
+
+    <!-- Krok 3 -->
+    <div class="wizard-step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+            <h2>Flashuj SD kartu v RPi Imager</h2>
+            <p>Stáhni a otevři
+               <a href="https://www.raspberrypi.com/software/" target="_blank">Raspberry Pi Imager</a>:
+            </p>
+
+            <div class="imager-steps">
+                <div class="imager-step">
+                    <span class="imager-label">Choose Device</span>
+                    <span class="imager-value">→ Raspberry Pi 5</span>
+                </div>
+                <div class="imager-step">
+                    <span class="imager-label">Choose OS</span>
+                    <span class="imager-value">→ Use custom → vyber <code>ha-kiosk-os-DATUM.img.xz</code></span>
+                </div>
+                <div class="imager-step">
+                    <span class="imager-label">Choose Storage</span>
+                    <span class="imager-value">→ Vyber SD kartu (min. 16 GB)</span>
+                </div>
+                <div class="imager-step">
+                    <span class="imager-label">Next → Edit Settings</span>
+                    <span class="imager-value">→ Nastav:</span>
+                </div>
+            </div>
+
+            <div class="settings-table">
+                <table>
+                    <tr>
+                        <td>Hostname</td>
+                        <td><code>kiosk</code> (nebo specifický název)</td>
+                    </tr>
+                    <tr>
+                        <td>Username</td>
+                        <td><code>pi</code> ← <strong>musí být přesně pi!</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Password</td>
+                        <td>Zvol si heslo (uloži si ho!)</td>
+                    </tr>
+                    <tr>
+                        <td>SSH</td>
+                        <td>✓ Enable SSH (Password authentication)</td>
+                    </tr>
+                    <tr>
+                        <td>WiFi</td>
+                        <td>❌ NEVYPLŇUJ — řeší se přes kiosk.conf</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>Klikni <strong>Save → Yes → Yes</strong> a počkej na dokončení flashování.</p>
+        </div>
+    </div>
+
+    <!-- Krok 4 -->
+    <div class="wizard-step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+            <h2>Zkopíruj kiosk.conf na SD kartu</h2>
+            <p>Po flashování bude boot oddíl SD karty viditelný ve Průzkumníkovi (Windows)
+               nebo jako <code>/media/boot</code> (Linux).</p>
+
+            <ol class="step-list">
+                <li>Otevři boot oddíl SD karty</li>
+                <li>Zkopíruj stažený <code>kiosk.conf</code> přímo do kořene boot oddílu</li>
+                <li>Vedle souborů <code>config.txt</code>, <code>cmdline.txt</code> atd.</li>
+                <li>Bezpečně odejmi SD kartu</li>
+            </ol>
+
+            <div class="warning-box">
+                <strong>⚠️ Bezpečnost:</strong> kiosk.conf obsahuje HA token.
+                Firstboot.sh ho automaticky smaže po konfiguraci.
+                Nikomu nesdílej kiosk.conf soubor!
+            </div>
+        </div>
+    </div>
+
+    <!-- Krok 5 -->
+    <div class="wizard-step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+            <h2>Zapni Raspberry Pi</h2>
+            <p>Vlož SD kartu do RPi 5, připoj LAN kabel a zapni napájení.</p>
+
+            <div class="boot-sequence">
+                <div class="boot-item">🟢 Boot RPi OS</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">🔍 Firstboot detekuje kiosk.conf</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">⚙️ Nastaví hostname, síť, rozlišení</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">📡 Phone-home → Kiosk Builder addon</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">🔑 Uloží SSH klíč</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">🗑 Smaže kiosk.conf (bezpečnost!)</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">🔄 Reboot</div>
+                <div class="boot-arrow">↓</div>
+                <div class="boot-item">📺 Chromium → HA Dashboard</div>
+            </div>
+
+            <p>Celý proces trvá <strong>5–10 minut</strong>.</p>
+            <p>Sleduj log: <code>ssh pi@KIOSK-IP "tail -f /var/log/kiosk-firstboot.log"</code></p>
+        </div>
+    </div>
+
+    <!-- Krok 6 -->
+    <div class="wizard-step">
+        <div class="step-number">6</div>
+        <div class="step-content">
+            <h2>✅ Hotovo!</h2>
+            <p>Po druhém restartu by se měl kiosk zobrazit jako Online v dashboardu.</p>
+
+            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                📋 Zobrazit dashboard kiosků
+            </a>
+
+            <div class="info-box">
+                <strong>🛠 Vzdálená správa:</strong><br>
+                • <strong>VNC:</strong> RPi IP:5900 (přes RealVNC Viewer)<br>
+                • <strong>SSH:</strong> <code>ssh pi@KIOSK-IP</code><br>
+                • <strong>Glances:</strong> http://KIOSK-IP:61208
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+################################################################################
+# kiosk.conf — šablona
+# Tento soubor je šablona. Skutečný kiosk.conf generuje HA Addon.
+# NIKDY necommituj vyplněný kiosk.conf do gitu!
+################################################################################
+
+# Identifikace kiosku
+KIOSK_HOSTNAME="YOUR_KIOSK_HOSTNAME"
+
+# HA URL a přístupový token (generuje HA Addon)
+KIOSK_HA_URL="http://YOUR_HA_IP:8123"
+KIOSK_HA_TOKEN="YOUR_LONG_LIVED_TOKEN"
+
+# URL Kiosk Builder addonu (phone-home při firstboot)
+KIOSK_ADDON_URL="http://YOUR_HA_IP:8099"
+
+# URL dashboardu zobrazeného v Chromiu
+KIOSK_DASHBOARD_URL="http://YOUR_HA_IP:8123/lovelace/YOUR_DASHBOARD"
+
+# Síť: dhcp | static | wifi
+KIOSK_NETWORK="dhcp"
+
+# Pouze pro KIOSK_NETWORK=wifi
+KIOSK_WIFI_SSID=""
+KIOSK_WIFI_PASSWORD=""
+
+# Pouze pro KIOSK_NETWORK=static
+KIOSK_STATIC_IP=""
+KIOSK_STATIC_GATEWAY=""
+KIOSK_STATIC_DNS="8.8.8.8"
+
+# Zobrazení
+KIOSK_RESOLUTION="1920x1080"
+KIOSK_ROTATION="0"
+
+# Audio
+KIOSK_AUDIO_OUTPUT="hdmi0"
+KIOSK_SNAPCAST_HOST=""
+
+# Moduly k instalaci při provisioning (mezerou oddělené)
+# Vynech 07-keyboard pokud kiosk nemá dotykový displej
+# Vynech 04-audio pokud nepouživáš Snapcast
+KIOSK_MODULES="01-kiosk-base 02-vnc 03-claude-code 04-audio 05-ha-bootstrap 06-monitoring"

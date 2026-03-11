@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Modul 06-monitoring — start_chroot_script
+# Instaluje Glances pro webový monitoring kiosku (CPU, RAM, disk, teplota)
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="06-monitoring"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Závislosti pro Glances web server
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji závislosti..."
+
+apt-get update -y
+apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-bottle   # Lightweight WSGI framework pro Glances web server
+
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# 2. Glances přes pip
+#    --break-system-packages je nutné na Debian 12 (Bookworm)
+#    kde pip je omezený bez virtualenv
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji Glances přes pip..."
+
+pip3 install glances --break-system-packages
+
+# Ověření
+/usr/local/bin/glances --version 2>/dev/null \
+    && echo "[${MODULE_NAME}] Glances nainstalován OK" \
+    || echo "[${MODULE_NAME}] VAROVÁNÍ: glances --version selhalo"
+
+# ---------------------------------------------------------------------------
+# 3. Povolení Glances service (web server na portu 61208)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Povoluji glances.service..."
+
+systemctl enable glances.service
+
+echo "[${MODULE_NAME}] Instalace dokončena."
+echo "[${MODULE_NAME}] Glances web UI dostupné na: http://kiosk.local:61208"

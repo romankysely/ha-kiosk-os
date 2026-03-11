@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Modul 02-vnc — start_chroot_script
+# Instaluje RealVNC Server pro vzdálený přístup ke kiosku
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="02-vnc"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Instalace RealVNC Server
+#    Dostupný v repo apt.raspberrypi.com (součást RPi OS)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji realvnc-vnc-server..."
+
+apt-get update -y
+apt-get install -y realvnc-vnc-server
+
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# 2. Povolení VNC service (service mode — připojí se k existujícímu :0)
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Povoluji vncserver-x11-serviced..."
+
+systemctl enable vncserver-x11-serviced.service
+
+# ---------------------------------------------------------------------------
+# 3. config.d/common.custom je zkopírován z files/
+#    → SystemAuth, šifrování, port 5900
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] VNC konfigurace připravena v files/etc/vnc/config.d/"
+
+echo "[${MODULE_NAME}] Instalace dokončena."

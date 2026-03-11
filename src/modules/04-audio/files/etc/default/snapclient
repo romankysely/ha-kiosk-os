@@ -1,0 +1,13 @@
+# HA KioskOS — Snapcast klient konfigurace
+# Soubor: /etc/default/snapclient
+#
+# __SNAPCAST_HOST__ se nahradí při firstboot z kiosk.conf (KIOSK_SNAPCAST_HOST)
+# Pokud KIOSK_SNAPCAST_HOST není nastaven, snapclient neběží (prázdný host)
+
+# Spustit snapclient automaticky? yes/no
+START_SNAPCLIENT=yes
+
+# Parametry snapclientu
+# -h  = Snapcast server host (IP nebo hostname HA serveru)
+# --player alsa = použít ALSA jako audio backend (PipeWire ALSA compat)
+SNAPCLIENT_OPTS="-h __SNAPCAST_HOST__ --player alsa"

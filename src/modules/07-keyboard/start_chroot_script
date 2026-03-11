@@ -1,0 +1,31 @@
+#!/bin/bash
+# Modul 07-keyboard — virtuální klávesnice pro dotykové kiosky
+# Instaluje onboard — automaticky se zobrazí při kliknutí na textové pole
+set -euo pipefail
+
+echo "[07-keyboard] Instaluji onboard virtuální klávesnici..."
+apt-get install -y --no-install-recommends \
+    onboard \
+    onboard-data \
+    at-spi2-core
+
+echo "[07-keyboard] Konfigurace onboard..."
+
+# Vytvoř konfigurační adresář pro uživatele pi
+mkdir -p /home/pi/.config/onboard
+chown -R 1000:1000 /home/pi/.config/onboard
+
+# Přidej onboard do openbox autostart
+# (soubor autostart již existuje z modulu 01-kiosk-base)
+AUTOSTART_FILE="/home/pi/.config/openbox/autostart"
+if [ -f "$AUTOSTART_FILE" ]; then
+    if ! grep -q "onboard" "$AUTOSTART_FILE"; then
+        echo "" >> "$AUTOSTART_FILE"
+        echo "# Virtuální klávesnice (07-keyboard)" >> "$AUTOSTART_FILE"
+        echo "sleep 3 && onboard &" >> "$AUTOSTART_FILE"
+    fi
+else
+    echo "onboard &" > "$AUTOSTART_FILE"
+fi
+
+echo "[07-keyboard] Hotovo."

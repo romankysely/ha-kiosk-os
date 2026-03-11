@@ -1,0 +1,13 @@
+#!/bin/sh
+# HA KioskOS — Openbox autostart
+
+# Vypnout screensaver a DPMS (energy saving)
+xset s off
+xset s noblank
+xset -dpms
+
+# Skrýt kurzor po 1 sekundě nečinnosti
+unclutter -idle 1 -root &
+
+# Spustit Chromium kiosk
+/usr/local/bin/chromium-kiosk &

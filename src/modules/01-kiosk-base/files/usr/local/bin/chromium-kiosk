@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# HA KioskOS — Chromium kiosk wrapper
+# URL se nastaví při firstboot z kiosk.conf (nahradí __DASHBOARD_URL__)
+set -euo pipefail
+
+DASHBOARD_URL="__DASHBOARD_URL__"
+LOG="/var/log/chromium-kiosk.log"
+
+# Počkej na X server
+for i in $(seq 1 30); do
+    if xdpyinfo -display :0 >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
+exec /usr/bin/chromium-browser \
+    --kiosk \
+    --no-first-run \
+    --disable-infobars \
+    --disable-session-crashed-bubble \
+    --disable-restore-session-state \
+    --disable-translate \
+    --disable-pinch \
+    --overscroll-history-navigation=0 \
+    --autoplay-policy=no-user-gesture-required \
+    --enable-features=VaapiVideoDecoder,VaapiVideoEncoder \
+    --use-gl=egl \
+    --ignore-gpu-blocklist \
+    --start-fullscreen \
+    --user-data-dir=/home/pi/.config/chromium \
+    "${DASHBOARD_URL}" \
+    >> "${LOG}" 2>&1

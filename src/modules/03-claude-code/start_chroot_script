@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Modul 03-claude-code — start_chroot_script
+# Instaluje Node.js 20 LTS a Claude Code CLI pro AI-asistovanou správu kiosku
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="03-claude-code"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Node.js 20 LTS přes NodeSource
+#    DŮLEŽITÉ: nepoužívat npm z apt — je stará verze
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Přidávám NodeSource repozitář (Node.js 20 LTS)..."
+
+apt-get update -y
+apt-get install -y curl ca-certificates
+
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+
+echo "[${MODULE_NAME}] Instaluji Node.js 20..."
+apt-get install -y nodejs
+
+# Ověření
+node --version
+npm --version
+
+# ---------------------------------------------------------------------------
+# 2. npm global prefix pro uživatele pi
+#    Bez sudo — Claude Code se instaluje do domovského adresáře
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Nastavuji npm global prefix pro pi..."
+
+mkdir -p /home/pi/.npm-global
+chown -R 1000:1000 /home/pi/.npm-global
+
+# Nastavit prefix globálně pro všechny uživatele (npm config)
+npm config set prefix '/home/pi/.npm-global' --location=global
+
+# ---------------------------------------------------------------------------
+# 3. Instalace Claude Code přes npm
+#    NE native installer — má bug na aarch64
+#    npm install -g funguje spolehlivě
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji @anthropic-ai/claude-code..."
+
+# Spustit jako uživatel pi (UID 1000) aby se npm-global zapsal správně
+HOME=/home/pi npm install -g @anthropic-ai/claude-code \
+    --prefix /home/pi/.npm-global
+
+# Ověření
+/home/pi/.npm-global/bin/claude --version 2>/dev/null \
+    && echo "[${MODULE_NAME}] Claude Code nainstalován OK" \
+    || echo "[${MODULE_NAME}] VAROVÁNÍ: claude --version selhalo (může být OK v chroot)"
+
+# ---------------------------------------------------------------------------
+# 4. PATH — přidat ~/.npm-global/bin do .bashrc
+#    Append na konec, pokud tam řádek ještě není
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Přidávám PATH do /home/pi/.bashrc..."
+
+BASHRC="/home/pi/.bashrc"
+PATH_LINE='export PATH="$HOME/.npm-global/bin:$PATH"'
+MARKER="# HA KioskOS — Claude Code PATH"
+
+if [ -f "${BASHRC}" ]; then
+    if ! grep -q "npm-global" "${BASHRC}"; then
+        echo "" >> "${BASHRC}"
+        echo "${MARKER}" >> "${BASHRC}"
+        echo "${PATH_LINE}" >> "${BASHRC}"
+    fi
+else
+    # .bashrc zatím neexistuje — vytvoříme ho
+    echo "${MARKER}" > "${BASHRC}"
+    echo "${PATH_LINE}" >> "${BASHRC}"
+fi
+
+chown 1000:1000 "${BASHRC}"
+
+# ---------------------------------------------------------------------------
+# 5. Úklid
+# ---------------------------------------------------------------------------
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+echo "[${MODULE_NAME}] Instalace dokončena."
+echo "[${MODULE_NAME}] POZNÁMKA: Pro první přihlášení Claude Code je nutné"
+echo "[${MODULE_NAME}]           zkopírovat credentials ze stroje kde je Claude přihlášen."
+echo "[${MODULE_NAME}]           Viz docs/modules/claude-code.md — sekce Autentizace."

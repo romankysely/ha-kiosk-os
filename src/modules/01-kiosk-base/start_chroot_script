@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# Modul 01-kiosk-base — start_chroot_script
+# Spouští se v ARM64 chroot prostředí při buildu image
+# Cílová platforma: Raspberry Pi 5, aarch64, Raspberry Pi OS Lite (Bookworm)
+set -euo pipefail
+
+MODULE_NAME="01-kiosk-base"
+echo "[${MODULE_NAME}] Začínám instalaci..."
+
+# ---------------------------------------------------------------------------
+# 1. Instalace balíčků
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Instaluji balíčky..."
+
+apt-get update -y
+apt-get install -y \
+    xorg \
+    openbox \
+    chromium-browser \
+    unclutter \
+    x11-xserver-utils \
+    libv4l-dev \
+    fonts-liberation \
+    xinit
+
+apt-get clean -y
+rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# 2. Autologin pi → TTY1
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Konfiguruji autologin..."
+
+mkdir -p /etc/systemd/system/getty@tty1.service.d
+# soubor autologin.conf je zkopírován z files/
+
+# ---------------------------------------------------------------------------
+# 3. Nastavení oprávnění pro soubory uživatele pi
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Nastavuji oprávnění souborů..."
+
+mkdir -p /home/pi/.config/openbox
+mkdir -p /home/pi/.local/share
+
+# pi má UID 1000 v Raspberry Pi OS
+chown -R 1000:1000 /home/pi/.config /home/pi/.local 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
+# 4. chmod pro spustitelné soubory
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Nastavuji chmod pro spustitelné skripty..."
+
+chmod +x /usr/local/bin/chromium-kiosk
+chmod +x /usr/local/bin/kiosk-watchdog.sh
+
+# ---------------------------------------------------------------------------
+# 5. Povolení systemd services
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Povoluji systemd services..."
+
+systemctl enable kiosk-watchdog.service
+
+# ---------------------------------------------------------------------------
+# 6. Chromium HW video — přidání pi do skupiny video
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Přidávám pi do skupiny video..."
+usermod -aG video pi 2>/dev/null || true
+
+# ---------------------------------------------------------------------------
+# 7. Append do /boot/firmware/config.txt
+# ---------------------------------------------------------------------------
+echo "[${MODULE_NAME}] Aktualizuji config.txt..."
+
+CONFIG_TXT="/boot/firmware/config.txt"
+if [ -f "${CONFIG_TXT}" ]; then
+    if ! grep -q "usb_max_current_enable" "${CONFIG_TXT}"; then
+        echo "" >> "${CONFIG_TXT}"
+        echo "# HA KioskOS — USB napájení monitoru" >> "${CONFIG_TXT}"
+        echo "usb_max_current_enable=1" >> "${CONFIG_TXT}"
+    fi
+else
+    echo "[${MODULE_NAME}] VAROVÁNÍ: ${CONFIG_TXT} nenalezen — přeskakuji"
+fi
+
+echo "[${MODULE_NAME}] Instalace dokončena."

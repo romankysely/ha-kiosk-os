@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Přidat kiosk{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Přidat kiosk</h1>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">← Zpět</a>
+</div>
+
+<form method="POST" action="{{ url_for('add_kiosk') }}" class="kiosk-form">
+
+    <!-- Identifikace -->
+    <div class="form-section">
+        <h2 class="section-title">🏷 Identifikace</h2>
+        <div class="form-group">
+            <label for="hostname">Hostname kiosku <span class="required">*</span></label>
+            <input type="text" id="hostname" name="hostname"
+                   value="{{ data.hostname }}" required
+                   placeholder="kiosk1" pattern="[a-z0-9\-]+"
+                   title="Pouze malá písmena, číslice a pomlčky">
+            <span class="help">Název kiosku (bez .local) — použije se jako hostname RPi</span>
+        </div>
+    </div>
+
+    <!-- Home Assistant -->
+    <div class="form-section">
+        <h2 class="section-title">🏠 Home Assistant</h2>
+
+        <div class="form-group">
+            <label for="ha_url">HA URL <span class="required">*</span></label>
+            <input type="url" id="ha_url" name="ha_url"
+                   value="{{ data.ha_url }}" required
+                   placeholder="http://192.168.1.100:8123">
+            <span class="help">Adresa tvého Home Assistant serveru</span>
+        </div>
+
+        <div class="form-group">
+            <label for="ha_token">HA Long-Lived Token <span class="required">*</span></label>
+            <input type="password" id="ha_token" name="ha_token"
+                   value="{{ data.ha_token }}" required
+                   placeholder="eyJ0eXAiOiJKV1Q...">
+            <span class="help">
+                Vygeneruj v HA: Profil → Bezpečnost → Dlouhodobé přístupové tokeny → Vytvořit token
+            </span>
+        </div>
+
+        <div class="form-group">
+            <label for="addon_url">Addon URL (tato instance)</label>
+            <input type="url" id="addon_url" name="addon_url"
+                   value="{{ data.addon_url }}"
+                   placeholder="http://192.168.1.100:8099">
+            <span class="help">URL tohoto addonu — RPi se sem hlásí při firstboot (phone-home)</span>
+        </div>
+
+        <div class="form-group">
+            <label for="dashboard_url">Dashboard URL</label>
+            <input type="url" id="dashboard_url" name="dashboard_url"
+                   value="{{ data.dashboard_url }}"
+                   placeholder="http://192.168.1.100:8123/lovelace/0">
+            <span class="help">URL zobrazená v Chromiu — může být konkrétní Lovelace pohled</span>
+        </div>
+    </div>
+
+    <!-- Síť -->
+    <div class="form-section">
+        <h2 class="section-title">🌐 Síťová konfigurace</h2>
+
+        <div class="form-group">
+            <label for="network">Typ připojení</label>
+            <select id="network" name="network" onchange="toggleNetwork(this.value)">
+                <option value="dhcp" {% if data.network == 'dhcp' %}selected{% endif %}>DHCP (doporučeno)</option>
+                <option value="static" {% if data.network == 'static' %}selected{% endif %}>Statická IP</option>
+                <option value="wifi" {% if data.network == 'wifi' %}selected{% endif %}>WiFi</option>
+            </select>
+            <span class="help">DHCP + statická rezervace v DHCP serveru (Unifi) je nejčistší řešení</span>
+        </div>
+
+        <!-- WiFi sekce -->
+        <div id="wifi-section" class="network-section" style="display:none">
+            <div class="form-group">
+                <label for="wifi_ssid">WiFi SSID</label>
+                <input type="text" id="wifi_ssid" name="wifi_ssid"
+                       value="{{ data.wifi_ssid }}" placeholder="MojeWiFi">
+            </div>
+            <div class="form-group">
+                <label for="wifi_password">WiFi heslo</label>
+                <input type="password" id="wifi_password" name="wifi_password"
+                       value="{{ data.wifi_password }}" placeholder="heslo">
+            </div>
+        </div>
+
+        <!-- Statická IP sekce -->
+        <div id="static-section" class="network-section" style="display:none">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="static_ip">Statická IP</label>
+                    <input type="text" id="static_ip" name="static_ip"
+                           value="{{ data.static_ip }}" placeholder="192.168.1.101">
+                </div>
+                <div class="form-group">
+                    <label for="static_gateway">Gateway</label>
+                    <input type="text" id="static_gateway" name="static_gateway"
+                           value="{{ data.static_gateway }}" placeholder="192.168.20.1">
+                </div>
+                <div class="form-group">
+                    <label for="static_dns">DNS</label>
+                    <input type="text" id="static_dns" name="static_dns"
+                           value="{{ data.static_dns }}" placeholder="8.8.8.8">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zobrazení -->
+    <div class="form-section">
+        <h2 class="section-title">🖥 Zobrazení</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="resolution">Rozlišení</label>
+                <select id="resolution" name="resolution">
+                    <option value="1920x1080" {% if data.resolution == '1920x1080' %}selected{% endif %}>1920×1080 (Full HD)</option>
+                    <option value="3840x2160" {% if data.resolution == '3840x2160' %}selected{% endif %}>3840×2160 (4K)</option>
+                    <option value="1280x720" {% if data.resolution == '1280x720' %}selected{% endif %}>1280×720 (HD)</option>
+                    <option value="1024x768" {% if data.resolution == '1024x768' %}selected{% endif %}>1024×768</option>
+                    <option value="800x480" {% if data.resolution == '800x480' %}selected{% endif %}>800×480 (7" RPi displej)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rotation">Rotace displeje</label>
+                <select id="rotation" name="rotation">
+                    <option value="0" {% if data.rotation == '0' %}selected{% endif %}>0° (normální)</option>
+                    <option value="1" {% if data.rotation == '1' %}selected{% endif %}>90° (vlevo)</option>
+                    <option value="2" {% if data.rotation == '2' %}selected{% endif %}>180° (otočený)</option>
+                    <option value="3" {% if data.rotation == '3' %}selected{% endif %}>270° (vpravo)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio (nepovinné) -->
+    <div class="form-section">
+        <h2 class="section-title">🔊 Audio <span class="optional">(nepovinné)</span></h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="audio_output">Audio výstup</label>
+                <select id="audio_output" name="audio_output">
+                    <option value="hdmi0" {% if data.audio_output == 'hdmi0' %}selected{% endif %}>HDMI 0</option>
+                    <option value="hdmi1" {% if data.audio_output == 'hdmi1' %}selected{% endif %}>HDMI 1</option>
+                    <option value="usb" {% if data.audio_output == 'usb' %}selected{% endif %}>USB audio</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="snapcast_host">Snapcast server (IP)</label>
+                <input type="text" id="snapcast_host" name="snapcast_host"
+                       value="{{ data.snapcast_host }}"
+                       placeholder="192.168.1.100">
+                <span class="help">IP adresa stroje kde běží Snapcast server (Music Assistant)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-lg">
+            💾 Uložit a stáhnout kiosk.conf
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg">Zrušit</a>
+    </div>
+
+</form>
+
+<script>
+function toggleNetwork(value) {
+    document.getElementById('wifi-section').style.display = value === 'wifi' ? 'block' : 'none';
+    document.getElementById('static-section').style.display = value === 'static' ? 'block' : 'none';
+}
+// Inicializace při načtení
+toggleNetwork('{{ data.network }}');
+</script>
+{% endblock %}

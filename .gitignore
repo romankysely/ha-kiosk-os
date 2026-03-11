@@ -1,0 +1,59 @@
+# ============================================================
+# CITLIVÉ SOUBORY — NIKDY do gitu!
+# ============================================================
+
+# Lokální konfigurace s hesly, tokeny, IP adresami
+config/kiosk.conf
+config/kiosk-*.conf
+*.conf.local
+.env
+.env.local
+
+# SSH klíče
+*.pem
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.key
+*.ppk
+
+# HA Addon runtime data (ukládá hesla, tokeny)
+ha-addon/app/data/
+ha-addon/data/
+data/
+
+# ============================================================
+# BUILD ARTEFAKTY
+# ============================================================
+
+# Výsledné image soubory (stovky MB až GB)
+*.img
+*.img.xz
+*.zip
+src/image/
+workspace/
+
+# Stažené upstream soubory
+upstream/downloads/
+
+# ============================================================
+# PYTHON / NODE
+# ============================================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+node_modules/
+npm-debug.log
+
+# ============================================================
+# SYSTÉMOVÉ
+# ============================================================
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~

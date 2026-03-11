@@ -1,0 +1,18 @@
+[Unit]
+Description=Glances — systémový monitoring (web UI na portu 61208)
+After=network.target
+Documentation=https://nicolargo.github.io/glances/
+
+[Service]
+Type=simple
+# Web server mód (-w), port 61208, bez hesla (LAN přístup)
+ExecStart=/usr/local/bin/glances -w --port 61208 --disable-autodiscover
+Restart=on-failure
+RestartSec=10
+# Spouštět jako root pro přístup k teplotním senzorům a HW info
+User=root
+# Konfigurace
+Environment=GLANCES_NO_BROWSER=1
+
+[Install]
+WantedBy=multi-user.target

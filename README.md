@@ -22,6 +22,36 @@ rozšířený o předinstalované moduly pro HA kiosk nasazení.
 | Glances | Vzdálený monitoring systému |
 | HA Bootstrap | Phone-home registrace po prvním startu |
 
+## Doporučený hardware
+
+### Základní sestava
+
+| Komponenta | Doporučení | Poznámka |
+|------------|-----------|---------|
+| **RPi** | Raspberry Pi 5 (4 GB) | 8 GB pokud intenzivně využíváš Claude Code |
+| **SD karta** | 64 GB, A2, High Endurance | Viz tabulka níže — klíčová volba pro kiosk 24/7 |
+| **Napájení** | Oficiální RPi 5 PSU 27W (USB-C) | Jiný zdroj může způsobit throttling a nestabilitu |
+| **Display** | Jakýkoliv HDMI monitor | Kabel: micro-HDMI → HDMI (součástí některých sad) |
+| **Case** | Case s pasivním nebo aktivním chladičem | Pi5 pod zátěží zahřívá — bez chlazení throttluje |
+
+> **Pi 4 není podporován** — projekt vyžaduje 64-bit (aarch64) pro Claude Code a HW video dekodér Pi5.
+
+### SD karta — výběr pro kiosk 24/7
+
+Kiosk zapisuje logy a čte Chromium nepřetržitě. Levné SD karty selhávají po měsících provozu.
+
+| Karta | Kapacita | Třída | Vhodnost |
+|-------|---------|-------|---------|
+| **Samsung PRO Endurance** | 64 GB | A1, High Endurance | ✅ Nejlepší volba pro 24/7 kiosk |
+| **SanDisk High Endurance** | 64 GB | A1, High Endurance | ✅ Dobrá volba |
+| Samsung Evo Plus | 64 GB | A2 | ⚠️ OK pro občasný provoz, ne 24/7 |
+| Noname / Amazon Basics | — | — | ❌ Nespolehlivé, selhávají po týdnech |
+
+**Minimální kapacita:** 32 GB (OS ~2 GB + moduly ~4 GB + rezerva)
+**Doporučená kapacita:** 64 GB (pohodlná rezerva pro logy a budoucí moduly)
+
+---
+
 ## Rychlý start (Provisioning — doporučeno)
 
 Viz [docs/02-how-to-build.md](docs/02-how-to-build.md)

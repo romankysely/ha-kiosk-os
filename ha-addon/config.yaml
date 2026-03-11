@@ -1,5 +1,5 @@
 name: "HA KioskOS — Kiosk Builder"
-version: "1.0.1"
+version: "1.0.2"
 slug: "ha_kiosk_os"
 description: "Správa HA kiosků — generování kiosk.conf, registrace RPi, status"
 url: "https://github.com/romankysely/ha-kiosk-os"
@@ -16,7 +16,7 @@ hassio_role: default
 # Webové UI přes HA ingress
 ingress: true
 ingress_port: 8099
-panel_icon: mdi:monitor-multiple
+panel_icon: mdi:monitor-dashboard
 panel_title: Kiosk Builder
 
 # Port pro přímé API volání z RPi (phone-home)
@@ -29,13 +29,3 @@ ports_description:
 map:
   - data
 
-# Konfigurace addonu
-options:
-  admin_password: "kiosk"
-  ssh_key_bits: 4096
-  kiosk_download_url: ""
-
-schema:
-  admin_password: str
-  ssh_key_bits: int
-  kiosk_download_url: str

@@ -32,9 +32,10 @@ rozšířený o předinstalované moduly pro HA kiosk nasazení.
 |------------|-----------|---------|
 | **RPi** | Raspberry Pi 5 (4 GB) | 8 GB pokud intenzivně využíváš Claude Code |
 | **SD karta** | 64 GB, A2, High Endurance | Viz tabulka níže — klíčová volba pro kiosk 24/7 |
-| **Napájení** | Oficiální RPi 5 PSU 27W (USB-C) | Jiný zdroj může způsobit throttling a nestabilitu |
-| **Display** | Jakýkoliv HDMI monitor | Kabel: micro-HDMI → HDMI (součástí některých sad) |
-| **Case** | Case s pasivním nebo aktivním chladičem | Pi5 pod zátěží zahřívá — bez chlazení throttluje |
+| **Napájení** | Oficiální RPi 5 PSU 27W (USB-C) | Nebo PoE HAT (viz níže) — pak stačí jen síťový kabel |
+| **Display** | [Pisichen 16" 1920×1200P IPS Touch](https://www.amazon.de/dp/B0CH6J5F26/) | USB-C nebo HDMI, 10-bodový dotyk, VESA 75×75 mm, 300 cd/m² |
+| **PoE HAT** | [Waveshare PoE HAT (F)](https://www.waveshare.com/product/raspberry-pi/hats/interface-power/poe-hat-f.htm) | Volitelné — napájení + aktivní chlazení přes síťový kabel (IEEE 802.3at) |
+| **Case** | Case s pasivním nebo aktivním chladičem | Nepotřebné při použití PoE HAT (má vlastní fan + heatsink) |
 
 > **Pi 4 není podporován** — projekt vyžaduje 64-bit (aarch64) pro Claude Code a HW video dekodér Pi5.
 

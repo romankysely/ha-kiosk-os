@@ -27,8 +27,7 @@ Webové rozhraní pro správu kiosků integrované přímo do Home Assistant.
 4. Klikni **Add → Close**
 5. Obnov stránku (F5) → v obchodě se zobrazí **HA KioskOS — Kiosk Builder**
 6. Klikni na addon → **Install** (~2 min)
-7. Po instalaci: záložka **Configuration** → nastav heslo → **Save**
-8. Záložka **Info** → **Start**
+7. Záložka **Info** → **Start**
 9. Přepni **Start on boot** a **Watchdog** na ON
 
 ### Metoda B — Lokální addon (pro vývoj a testování)
@@ -49,19 +48,6 @@ V HA → Settings → Add-ons → **Local add-ons** (spodek stránky) → Kiosk 
 
 ---
 
-## Konfigurace Addonu
-
-Po instalaci, záložka **Configuration**:
-
-| Parametr | Výchozí | Popis |
-|----------|---------|-------|
-| `admin_password` | `kiosk` | Heslo pro webové UI (změň!) |
-| `ssh_key_bits` | `4096` | Velikost SSH klíče pro přístup ke kioskům |
-| `kiosk_download_url` | *(prázdné)* | URL vlastního image (nech prázdné) |
-
-**Po změně konfigurace vždy klikni Save → Restart addon.**
-
----
 
 ## Jak přidat kiosk (krok za krokem)
 
@@ -177,6 +163,3 @@ cat /var/log/kiosk-firstboot.log
 
 Settings → Add-ons → Kiosk Builder → **Show in sidebar** → zapnout
 
-### Zapomenuté heslo
-
-Settings → Add-ons → Kiosk Builder → Configuration → změň `admin_password` → Save → Restart

@@ -1,6 +1,6 @@
 # HA KioskOS
 
-![HA KioskOS](ha-addon/icon.png)
+![HA KioskOS](ha-addon/icon.png?v=2)
 
 Specializovaná 64-bit RPi distribuce pro Home Assistant kiosky.
 Postavena na čistém RPi OS Lite 64-bit s modulárními komponentami pro HA kiosk nasazení.

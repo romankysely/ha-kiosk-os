@@ -68,12 +68,12 @@ fi
 log "Konfiguruji síť (režim: ${KIOSK_NETWORK})..."
 
 case "${KIOSK_NETWORK}" in
-    dhcp)
-        log "DHCP — žádná změna (výchozí chování RPi OS)"
+    dhcp|lan-dhcp)
+        log "LAN DHCP — žádná změna (výchozí chování RPi OS)"
         ;;
-    static)
+    static|lan-static)
         if [ -n "${KIOSK_STATIC_IP:-}" ] && [ -n "${KIOSK_STATIC_GATEWAY:-}" ]; then
-            log "Statická IP: ${KIOSK_STATIC_IP}, GW: ${KIOSK_STATIC_GATEWAY}"
+            log "Statická IP (LAN): ${KIOSK_STATIC_IP}, GW: ${KIOSK_STATIC_GATEWAY}"
             cat >> /etc/dhcpcd.conf <<DHCP_EOF
 
 # HA KioskOS static IP (nastaveno při firstboot)
@@ -82,14 +82,14 @@ static ip_address=${KIOSK_STATIC_IP}/24
 static routers=${KIOSK_STATIC_GATEWAY}
 static domain_name_servers=${KIOSK_STATIC_DNS:-8.8.8.8}
 DHCP_EOF
-            log "Statická IP nastavena OK"
+            log "Statická IP (LAN) nastavena OK"
         else
-            log "VAROVÁNÍ: KIOSK_NETWORK=static ale IP/GW není nastavena — používám DHCP"
+            log "VAROVÁNÍ: KIOSK_NETWORK=${KIOSK_NETWORK} ale IP/GW není nastavena — používám DHCP"
         fi
         ;;
-    wifi)
+    wifi|wifi-dhcp)
         if [ -n "${KIOSK_WIFI_SSID:-}" ]; then
-            log "WiFi SSID: ${KIOSK_WIFI_SSID}"
+            log "WiFi DHCP, SSID: ${KIOSK_WIFI_SSID}"
             cat > /etc/wpa_supplicant/wpa_supplicant.conf <<WIFI_EOF
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -102,9 +102,41 @@ network={
 }
 WIFI_EOF
             chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
-            log "WiFi konfigurace nastavena OK"
+            log "WiFi DHCP konfigurace nastavena OK"
         else
-            log "VAROVÁNÍ: KIOSK_NETWORK=wifi ale SSID není nastaven — používám eth0"
+            log "VAROVÁNÍ: KIOSK_NETWORK=${KIOSK_NETWORK} ale SSID není nastaven — používám eth0"
+        fi
+        ;;
+    wifi-static)
+        if [ -n "${KIOSK_WIFI_SSID:-}" ]; then
+            log "WiFi statická IP, SSID: ${KIOSK_WIFI_SSID}, IP: ${KIOSK_STATIC_IP}"
+            cat > /etc/wpa_supplicant/wpa_supplicant.conf <<WIFI_STATIC_EOF
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+country=CZ
+
+network={
+    ssid="${KIOSK_WIFI_SSID}"
+    psk="${KIOSK_WIFI_PASSWORD:-}"
+    key_mgmt=WPA-PSK
+}
+WIFI_STATIC_EOF
+            chmod 600 /etc/wpa_supplicant/wpa_supplicant.conf
+            if [ -n "${KIOSK_STATIC_IP:-}" ] && [ -n "${KIOSK_STATIC_GATEWAY:-}" ]; then
+                cat >> /etc/dhcpcd.conf <<DHCP_WIFI_EOF
+
+# HA KioskOS static IP (WiFi, nastaveno při firstboot)
+interface wlan0
+static ip_address=${KIOSK_STATIC_IP}/24
+static routers=${KIOSK_STATIC_GATEWAY}
+static domain_name_servers=${KIOSK_STATIC_DNS:-8.8.8.8}
+DHCP_WIFI_EOF
+                log "WiFi statická IP nastavena OK"
+            else
+                log "VAROVÁNÍ: wifi-static ale IP/GW není nastavena — WiFi bude DHCP"
+            fi
+        else
+            log "VAROVÁNÍ: KIOSK_NETWORK=wifi-static ale SSID není nastaven — používám eth0"
         fi
         ;;
     *)

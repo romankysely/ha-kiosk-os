@@ -12,15 +12,33 @@
     <div class="wizard-step">
         <div class="step-number">1</div>
         <div class="step-content">
-            <h2>Stáhni HA KioskOS image</h2>
-            <p>Stáhni si předpřipravený image pro Raspberry Pi 5:</p>
-            <a href="{{ download_url }}" class="btn btn-primary" target="_blank">
-                ⬇ Stáhnout ha-kiosk-os.img.xz
-            </a>
+            <h2>Připrav Home Assistant</h2>
+            <p>Tento průvodce popisuje <strong>Scénář A — Provisioning</strong>: standardní Raspberry Pi OS Lite
+               z RPi Imager + automatická konfigurace při prvním startu.</p>
+
+            <p>Než začneš, vytvoř v HA dedikovaného uživatele pro kiosk:</p>
+
+            <div class="settings-table">
+                <table>
+                    <tr>
+                        <td>Vytvoř uživatele</td>
+                        <td>HA → <strong>Nastavení → Lidé → Přidat osobu</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Uživatelské jméno</td>
+                        <td>Malá písmena, číslice, podtržítko — např. <code>kiosk1</code></td>
+                    </tr>
+                    <tr>
+                        <td>Vygeneruj token</td>
+                        <td>Přihlas se jako tento uživatel → Profil → Bezpečnost →
+                            Dlouhodobé přístupové tokeny → <strong>Vytvořit token</strong> → zkopíruj</td>
+                    </tr>
+                </table>
+            </div>
+
             <div class="info-box">
-                <strong>💡 Tip:</strong> Soubor je cca 2 GB (komprimovaný .xz).
-                Alternativně si sestav vlastní image pomocí <code>build.sh</code>
-                — viz <a href="https://github.com/romankysely/ha-kiosk-os" target="_blank">README na GitHubu</a>.
+                <strong>💡 Proč samostatný uživatel?</strong> Token v kiosk.conf má plný přístup k HA.
+                Dedikovaný účet s omezenými právy je bezpečnější než token hlavního admina.
             </div>
         </div>
     </div>
@@ -35,9 +53,9 @@
             <p>Po uložení se automaticky stáhne soubor <code>kiosk.conf</code>.</p>
 
             <div class="info-box">
-                <strong>🔑 HA Token:</strong> V Home Assistant přejdi na
-                <em>Profil → Bezpečnost → Dlouhodobé přístupové tokeny</em>
-                a vytvoř nový token (např. "kiosk1").
+                <strong>🔑 HA uživatel a token:</strong> Do formuláře zadej uživatelské jméno
+                a token vytvořený v Kroku 1. Token se generuje v profilu kiosk uživatele v HA
+                (Profil → Bezpečnost → Dlouhodobé přístupové tokeny).
             </div>
         </div>
     </div>
@@ -58,7 +76,7 @@
                 </div>
                 <div class="imager-step">
                     <span class="imager-label">Choose OS</span>
-                    <span class="imager-value">→ Use custom → vyber <code>ha-kiosk-os-DATUM.img.xz</code></span>
+                    <span class="imager-value">→ Raspberry Pi OS (other) → <strong>Raspberry Pi OS Lite (64-bit)</strong></span>
                 </div>
                 <div class="imager-step">
                     <span class="imager-label">Choose Storage</span>
@@ -82,7 +100,7 @@
                     </tr>
                     <tr>
                         <td>Password</td>
-                        <td>Zvol si heslo (uloži si ho!)</td>
+                        <td>Zvol si heslo (ulož si ho!)</td>
                     </tr>
                     <tr>
                         <td>SSH</td>
@@ -90,7 +108,10 @@
                     </tr>
                     <tr>
                         <td>WiFi</td>
-                        <td>❌ NEVYPLŇUJ — řeší se přes kiosk.conf</td>
+                        <td>
+                            <strong>LAN kiosk:</strong> ❌ NEVYPLŇUJ — připojení přes kabel<br>
+                            <strong>WiFi kiosk:</strong> ✓ VYPLŇ SSID + heslo — bez toho se RPi nepřipojí k síti
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -126,8 +147,8 @@
     <div class="wizard-step">
         <div class="step-number">5</div>
         <div class="step-content">
-            <h2>Zapni Raspberry Pi</h2>
-            <p>Vlož SD kartu do RPi 5, připoj LAN kabel a zapni napájení.</p>
+            <h2>Připrav Raspberry Pi</h2>
+            <p>Vlož SD kartu do RPi 5, připoj LAN kabel (nebo zajisti WiFi dle Kroku 3) a zapni napájení.</p>
 
             <div class="boot-sequence">
                 <div class="boot-item">🟢 Boot RPi OS</div>

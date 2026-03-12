@@ -18,7 +18,7 @@
                    value="{{ data.hostname }}" required
                    placeholder="kiosk1" pattern="[a-z0-9\-]+"
                    title="Pouze malá písmena, číslice a pomlčky">
-            <span class="help">Název kiosku (bez .local) — použije se jako hostname RPi</span>
+            <span class="help">Název kiosku (bez .local) — pouze malá písmena, číslice a pomlčky (a-z, 0-9, -)</span>
         </div>
     </div>
 
@@ -35,21 +35,25 @@
         </div>
 
         <div class="form-group">
+            <label for="ha_username">HA uživatelské jméno <span class="required">*</span></label>
+            <input type="text" id="ha_username" name="ha_username"
+                   value="{{ data.ha_username }}" required
+                   placeholder="kiosk">
+            <span class="help">
+                Uživatel v HA pro kiosk. Vytvoř v HA: <strong>Nastavení → Lidé → Přidat osobu</strong>.<br>
+                Povolené znaky: a-z, 0-9, podtržítko _ (bez háčků, bez mezer)
+            </span>
+        </div>
+
+        <div class="form-group">
             <label for="ha_token">HA Long-Lived Token <span class="required">*</span></label>
             <input type="password" id="ha_token" name="ha_token"
                    value="{{ data.ha_token }}" required
                    placeholder="eyJ0eXAiOiJKV1Q...">
             <span class="help">
-                Vygeneruj v HA: Profil → Bezpečnost → Dlouhodobé přístupové tokeny → Vytvořit token
+                Přihlas se do HA jako uživatel kiosku → klikni na jméno vpravo nahoře → <strong>Profil</strong><br>
+                → Bezpečnost → Dlouhodobé přístupové tokeny → <strong>Vytvořit token</strong> (např. "kiosk1") → zkopíruj
             </span>
-        </div>
-
-        <div class="form-group">
-            <label for="addon_url">Addon URL (tato instance)</label>
-            <input type="url" id="addon_url" name="addon_url"
-                   value="{{ data.addon_url }}"
-                   placeholder="http://192.168.1.100:8099">
-            <span class="help">URL tohoto addonu — RPi se sem hlásí při firstboot (phone-home)</span>
         </div>
 
         <div class="form-group">
@@ -68,9 +72,10 @@
         <div class="form-group">
             <label for="network">Typ připojení</label>
             <select id="network" name="network" onchange="toggleNetwork(this.value)">
-                <option value="dhcp" {% if data.network == 'dhcp' %}selected{% endif %}>DHCP (doporučeno)</option>
-                <option value="static" {% if data.network == 'static' %}selected{% endif %}>Statická IP</option>
-                <option value="wifi" {% if data.network == 'wifi' %}selected{% endif %}>WiFi</option>
+                <option value="lan-dhcp" {% if data.network == 'lan-dhcp' %}selected{% endif %}>LAN — DHCP (doporučeno)</option>
+                <option value="lan-static" {% if data.network == 'lan-static' %}selected{% endif %}>LAN — Statická IP</option>
+                <option value="wifi-dhcp" {% if data.network == 'wifi-dhcp' %}selected{% endif %}>WiFi — DHCP</option>
+                <option value="wifi-static" {% if data.network == 'wifi-static' %}selected{% endif %}>WiFi — Statická IP</option>
             </select>
             <span class="help">DHCP + statická rezervace v DHCP serveru (Unifi) je nejčistší řešení</span>
         </div>
@@ -118,6 +123,7 @@
             <div class="form-group">
                 <label for="resolution">Rozlišení</label>
                 <select id="resolution" name="resolution">
+                    <option value="1920x1200" {% if data.resolution == '1920x1200' %}selected{% endif %}>1920×1200 (Pisichen 16" — doporučeno)</option>
                     <option value="1920x1080" {% if data.resolution == '1920x1080' %}selected{% endif %}>1920×1080 (Full HD)</option>
                     <option value="3840x2160" {% if data.resolution == '3840x2160' %}selected{% endif %}>3840×2160 (4K)</option>
                     <option value="1280x720" {% if data.resolution == '1280x720' %}selected{% endif %}>1280×720 (HD)</option>
@@ -170,8 +176,8 @@
 
 <script>
 function toggleNetwork(value) {
-    document.getElementById('wifi-section').style.display = value === 'wifi' ? 'block' : 'none';
-    document.getElementById('static-section').style.display = value === 'static' ? 'block' : 'none';
+    document.getElementById('wifi-section').style.display = value.startsWith('wifi') ? 'block' : 'none';
+    document.getElementById('static-section').style.display = value.endsWith('-static') ? 'block' : 'none';
 }
 // Inicializace při načtení
 toggleNetwork('{{ data.network }}');

@@ -94,6 +94,14 @@ def kiosk_is_online(kiosk: dict, timeout_minutes: int = 5) -> bool:
 
 def generate_kiosk_conf(data: dict) -> str:
     """Vygeneruje obsah kiosk.conf ze slovníku dat."""
+    # Auto-derivovat addon URL z ha_url (nahradit port za 8099)
+    ha_url = data.get("ha_url", "")
+    if ha_url and "://" in ha_url:
+        parts = ha_url.rsplit(":", 1)
+        addon_url = parts[0] + ":8099"
+    else:
+        addon_url = ""
+
     lines = [
         "################################################################################",
         f"# kiosk.conf — vygenerováno HA KioskOS Kiosk Builderem",
@@ -106,10 +114,10 @@ def generate_kiosk_conf(data: dict) -> str:
         "# HA přihlašovací údaje",
         "# Uživatel musí existovat v HA (Settings → People → Add Person)",
         "# Token vytvoř v profilu uživatele v HA (Long-Lived Access Token)",
-        f'KIOSK_HA_URL="{data.get("ha_url", "")}"',
+        f'KIOSK_HA_URL="{ha_url}"',
         f'KIOSK_HA_USERNAME="{data.get("ha_username", "")}"',
         f'KIOSK_HA_TOKEN="{data.get("ha_token", "")}"',
-        f'KIOSK_ADDON_URL="{data.get("addon_url", "")}"',
+        f'KIOSK_ADDON_URL="{addon_url}"',
         "",
         f'KIOSK_DASHBOARD_URL="{data.get("dashboard_url", "")}"',
         "",
@@ -158,9 +166,8 @@ def add_kiosk():
             "ha_url": request.form.get("ha_url", "").strip().rstrip("/"),
             "ha_username": request.form.get("ha_username", "").strip(),
             "ha_token": request.form.get("ha_token", "").strip(),
-            "addon_url": request.form.get("addon_url", "").strip().rstrip("/"),
             "dashboard_url": request.form.get("dashboard_url", "").strip(),
-            "network": request.form.get("network", "dhcp"),
+            "network": request.form.get("network", "lan-dhcp"),
             "wifi_ssid": request.form.get("wifi_ssid", "").strip(),
             "wifi_password": request.form.get("wifi_password", "").strip(),
             "static_ip": request.form.get("static_ip", "").strip(),
@@ -207,15 +214,14 @@ def add_kiosk():
         "ha_url": ha_url,
         "ha_username": "",
         "ha_token": "",
-        "addon_url": f"http://{ha_ip}:8099",
         "dashboard_url": f"{ha_url}/lovelace/0",
-        "network": "dhcp",
+        "network": "lan-dhcp",
         "wifi_ssid": "",
         "wifi_password": "",
         "static_ip": "",
         "static_gateway": "",
         "static_dns": "8.8.8.8",
-        "resolution": "1920x1080",
+        "resolution": "1920x1200",
         "rotation": "0",
         "audio_output": "hdmi0",
         "snapcast_host": "",
